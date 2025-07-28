@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react'
-import { BIBLE_VERSIONS, BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, BIBLE_DATA, type BibleVersion, type Book } from '@/lib/bible-data'
+import { useState, useEffect, useCallback } from 'react'
+import { BIBLE_VERSIONS, BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, type BibleVersion, type Book, type VerseData } from '@/lib/bible-data'
 import { AppHeader } from '@/components/bible/header'
 import { VersionSelector } from '@/components/bible/version-selector'
 import { BookSelector } from '@/components/bible/book-selector'
@@ -9,18 +9,21 @@ import { ChapterViewer } from '@/components/bible/chapter-viewer'
 import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialog'
 import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 
-type SelectedVerse = { book: string; chapter: number; verse: number };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; };
 
 export default function Home() {
-  const [version, setVersion] = useState<BibleVersion>('NVI')
-  const [book, setBook] = useState<Book>(BIBLE_BOOKS_OT[0])
-  const [chapter, setChapter] = useState<number>(1)
+  const [version, setVersion] = useState<BibleVersion>('RVR1960')
+  const [book, setBook] = useState<Book>(BIBLE_BOOKS_NT.find(b => b.name === 'Filipenses')!)
+  const [chapter, setChapter] = useState<number>(4)
   const [textSize, setTextSize] = useState(1)
   
   const [selectedVerse, setSelectedVerse] = useState<SelectedVerse | null>(null);
   const [isCompareOpen, setCompareOpen] = useState(false);
   const [isConcordanceOpen, setConcordanceOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
+  
+  const [chapterContent, setChapterContent] = useState<VerseData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     setIsClient(true)
@@ -31,6 +34,36 @@ export default function Home() {
       document.documentElement.style.setProperty('--text-size', size.toString())
     }
   }, [])
+  
+  const fetchChapterContent = useCallback(async () => {
+    if (!book || !chapter || !version) return;
+    setIsLoading(true);
+    try {
+        const bookName = book.name.toLowerCase().replace(/ /g, '');
+        // Special mapping for RVR1960 version
+        const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
+        const response = await fetch(`https://5000-firebase-bible-backend-1753281255829.cluster-etsqrqvqyvd4erxx7qq32imrjk.cloudworkstations.dev/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        if (data.chapter && data.chapter.length > 0) {
+            setChapterContent(data.chapter[0].data);
+        } else {
+            setChapterContent([]);
+        }
+    } catch (error) {
+        console.error("Failed to fetch chapter content:", error);
+        setChapterContent([]);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [book, chapter, version]);
+  
+  useEffect(() => {
+      fetchChapterContent();
+  }, [fetchChapterContent]);
+
 
   const handleTextSizeChange = (newSize: number) => {
     setTextSize(newSize)
@@ -52,10 +85,6 @@ export default function Home() {
     setSelectedVerse(verse);
     setConcordanceOpen(true);
   }
-
-  const chapterContent = useMemo(() => {
-    return BIBLE_DATA[version]?.[book.name]?.[chapter] || {}
-  }, [version, book, chapter])
 
   if (!isClient) {
     return null;
@@ -86,6 +115,7 @@ export default function Home() {
               book={book}
               chapter={chapter}
               content={chapterContent}
+              isLoading={isLoading}
               onCompareVerse={handleCompare}
               onConcordance={handleConcordance}
             />
