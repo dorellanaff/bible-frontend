@@ -9,14 +9,17 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 
+type SelectedVerse = { book: string; chapter: number; verse: number };
+
 interface ChapterViewerProps {
   book: Book;
   chapter: number;
   content: { [verse: number]: string };
-  onCompareVerse: (verse: { book: string; chapter: number; verse: number }) => void;
+  onCompareVerse: (verse: SelectedVerse) => void;
+  onConcordance: (verse: SelectedVerse) => void;
 }
 
-export function ChapterViewer({ book, chapter, content, onCompareVerse }: ChapterViewerProps) {
+export function ChapterViewer({ book, chapter, content, onCompareVerse, onConcordance }: ChapterViewerProps) {
   const { toast } = useToast()
   const verses = Object.entries(content);
 
@@ -26,6 +29,10 @@ export function ChapterViewer({ book, chapter, content, onCompareVerse }: Chapte
       title: "Copiado",
       description: "Versículo copiado al portapapeles.",
     })
+  }
+
+  const handleAction = (verseNumber: string, action: (verse: SelectedVerse) => void) => {
+    action({ book: book.name, chapter, verse: parseInt(verseNumber) });
   }
 
   return (
@@ -51,11 +58,11 @@ export function ChapterViewer({ book, chapter, content, onCompareVerse }: Chapte
                         <Copy className="mr-2 h-4 w-4" /> Copiar
                       </Button>
                       <Separator />
-                      <Button variant="ghost" className="justify-start p-2" onClick={() => onCompareVerse({ book: book.name, chapter, verse: parseInt(verseNumber) })}>
+                      <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseNumber, onCompareVerse)}>
                         <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
                       </Button>
                       <Separator />
-                      <Button variant="ghost" className="justify-start p-2">
+                      <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseNumber, onConcordance)}>
                         <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                       </Button>
                       <Separator />

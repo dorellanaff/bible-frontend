@@ -7,6 +7,7 @@ import { VersionSelector } from '@/components/bible/version-selector'
 import { BookSelector } from '@/components/bible/book-selector'
 import { ChapterViewer } from '@/components/bible/chapter-viewer'
 import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialog'
+import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 
 type SelectedVerse = { book: string; chapter: number; verse: number };
 
@@ -18,6 +19,7 @@ export default function Home() {
   
   const [selectedVerse, setSelectedVerse] = useState<SelectedVerse | null>(null);
   const [isCompareOpen, setCompareOpen] = useState(false);
+  const [isConcordanceOpen, setConcordanceOpen] = useState(false);
 
   useEffect(() => {
     const storedTextSize = localStorage.getItem('bible-text-size')
@@ -42,6 +44,11 @@ export default function Home() {
   const handleCompare = (verse: SelectedVerse) => {
     setSelectedVerse(verse);
     setCompareOpen(true);
+  }
+
+  const handleConcordance = (verse: SelectedVerse) => {
+    setSelectedVerse(verse);
+    setConcordanceOpen(true);
   }
 
   const chapterContent = useMemo(() => {
@@ -74,17 +81,25 @@ export default function Home() {
               chapter={chapter}
               content={chapterContent}
               onCompareVerse={handleCompare}
+              onConcordance={handleConcordance}
             />
           </section>
         </div>
       </main>
       
       {selectedVerse && (
-        <VerseComparisonDialog
-          isOpen={isCompareOpen}
-          onOpenChange={setCompareOpen}
-          verseInfo={selectedVerse}
-        />
+        <>
+          <VerseComparisonDialog
+            isOpen={isCompareOpen}
+            onOpenChange={setCompareOpen}
+            verseInfo={selectedVerse}
+          />
+          <ConcordanceDialog
+            isOpen={isConcordanceOpen}
+            onOpenChange={setConcordanceOpen}
+            verseInfo={selectedVerse}
+          />
+        </>
       )}
     </div>
   )
