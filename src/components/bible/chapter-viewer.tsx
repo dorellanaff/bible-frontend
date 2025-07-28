@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Droplet, Share2 } from 'lucide-react'
+import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
 import type { Book } from '@/lib/bible-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -53,6 +53,10 @@ export function ChapterViewer({ book, chapter, content, onCompareVerse }: Chapte
                       <Separator />
                       <Button variant="ghost" className="justify-start p-2" onClick={() => onCompareVerse({ book: book.name, chapter, verse: parseInt(verseNumber) })}>
                         <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
+                      </Button>
+                      <Separator />
+                      <Button variant="ghost" className="justify-start p-2">
+                        <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                       </Button>
                       <Separator />
                       <Button variant="ghost" className="justify-start p-2">
