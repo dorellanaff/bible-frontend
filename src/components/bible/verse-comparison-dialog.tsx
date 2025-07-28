@@ -36,7 +36,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
         try {
           const bookName = book.toLowerCase().replace(/ /g, '');
           const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-          const response = await fetch(`https://5000-firebase-bible-backend-1753281255829.cluster-etsqrqvqyvd4erxx7qq32imrjk.cloudworkstations.dev/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+          const response = await fetch(`https://bible-backend-beta.vercel.app/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
           if (!response.ok) return { version, text: null };
           
           const data = await response.json();
