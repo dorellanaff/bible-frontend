@@ -20,8 +20,10 @@ export default function Home() {
   const [selectedVerse, setSelectedVerse] = useState<SelectedVerse | null>(null);
   const [isCompareOpen, setCompareOpen] = useState(false);
   const [isConcordanceOpen, setConcordanceOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     const storedTextSize = localStorage.getItem('bible-text-size')
     if (storedTextSize) {
       const size = parseFloat(storedTextSize)
@@ -54,6 +56,10 @@ export default function Home() {
   const chapterContent = useMemo(() => {
     return BIBLE_DATA[version]?.[book.name]?.[chapter] || {}
   }, [version, book, chapter])
+
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
