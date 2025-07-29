@@ -33,10 +33,12 @@ function BookList({ books, selectedBook, onBookSelect }: { books: Book[], select
 }
 
 export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBook, onBookSelect }: BookSelectorProps) {
+  const [activeTab, setActiveTab] = React.useState('antiguo');
   const atScrollRef = React.useRef<HTMLDivElement>(null);
   const ntScrollRef = React.useRef<HTMLDivElement>(null);
 
   const handleTabChange = (value: string) => {
+    setActiveTab(value);
     // Reset scroll position on tab change
     if (value === 'antiguo' && atScrollRef.current) {
       atScrollRef.current.scrollTop = 0;
@@ -47,32 +49,39 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   };
 
   return (
-    <Card className="card-material lg:flex lg:flex-col lg:h-[calc(100vh-5rem)]">
-      <CardHeader className="flex-shrink-0">
-        <CardTitle className="font-headline text-2xl">Seleccionar Libro</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col p-0 px-4 pb-4 overflow-hidden">
-        <Tabs defaultValue="antiguo" className="w-full flex-grow flex flex-col overflow-hidden" onValueChange={handleTabChange}>
-          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
-            <TabsTrigger value="antiguo" className="font-headline">Antiguo Testamento</TabsTrigger>
-            <TabsTrigger value="nuevo" className="font-headline">Nuevo Testamento</TabsTrigger>
-          </TabsList>
-          
-          <div className="flex-grow mt-4 overflow-hidden">
-             <TabsContent value="antiguo" className="m-0 h-full">
-                <ScrollArea className="h-full" viewportRef={atScrollRef}>
-                  <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+    <div className="space-y-6 lg:flex lg:flex-col lg:h-[calc(100vh-5rem)]">
+      <Card className="card-material flex-shrink-0">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">Seleccionar Testamento</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="antiguo" className="font-headline">Antiguo</TabsTrigger>
+              <TabsTrigger value="nuevo" className="font-headline">Nuevo</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
+      <Card className="card-material flex-grow flex flex-col overflow-hidden">
+        <CardHeader>
+            <CardTitle className="font-headline text-2xl">Seleccionar Libro</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-grow overflow-auto p-4 pt-0">
+            <div className="h-full">
+              {activeTab === 'antiguo' ? (
+                 <ScrollArea className="h-full" viewportRef={atScrollRef}>
+                    <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+                 </ScrollArea>
+              ): (
+                <ScrollArea className="h-full" viewportRef={ntScrollRef}>
+                    <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
                 </ScrollArea>
-            </TabsContent>
-            <TabsContent value="nuevo" className="m-0 h-full">
-              <ScrollArea className="h-full" viewportRef={ntScrollRef}>
-                <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
-              </ScrollArea>
-            </TabsContent>
-          </div>
-
-        </Tabs>
-      </CardContent>
-    </Card>
+              )}
+            </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
