@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string };
 
@@ -30,6 +31,10 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
   const [touchStart, setTouchStart] = React.useState(0);
   const [touchEnd, setTouchEnd] = React.useState(0);
   const minSwipeDistance = 50;
+  
+  const [animationClass, setAnimationClass] = React.useState('');
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(0);
@@ -47,11 +52,33 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
-      onNextChapter();
+      setAnimationClass('animate-slide-out-to-left');
+      setTimeout(() => {
+        onNextChapter();
+      }, 200);
     } else if (isRightSwipe) {
-      onPreviousChapter();
+      setAnimationClass('animate-slide-out-to-right');
+      setTimeout(() => {
+        onPreviousChapter();
+      }, 200);
     }
   };
+
+  React.useEffect(() => {
+    if (animationClass.includes('slide-out')) {
+      const direction = animationClass.includes('left') ? 'left' : 'right';
+      setAnimationClass(`animate-slide-in-from-${direction}`);
+    }
+    
+    const timer = setTimeout(() => {
+        if (animationClass.includes('slide-in')) {
+            setAnimationClass('');
+        }
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [chapter, content]);
+
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -111,34 +138,36 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
   return (
     <Card 
-      className="card-material"
+      className="card-material overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <CardHeader>
-        <CardTitle className="font-headline text-3xl md:text-4xl">{book.name} {chapter}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-            <div className="space-y-4">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-full" />
-                <Skeleton className="h-6 w-5/6" />
-                <Skeleton className="h-6 w-full" />
+      <div ref={contentRef} className={cn(animationClass)}>
+        <CardHeader>
+          <CardTitle className="font-headline text-3xl md:text-4xl">{book.name} {chapter}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+              <div className="space-y-4">
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-full" />
+                  <Skeleton className="h-6 w-5/6" />
+                  <Skeleton className="h-6 w-full" />
+              </div>
+          ) : content.length > 0 ? (
+            <div className="space-y-2 text-readable">
+              {content.map(renderVerse)}
             </div>
-        ) : content.length > 0 ? (
-          <div className="space-y-2 text-readable">
-            {content.map(renderVerse)}
-          </div>
-        ) : (
-          <div className="text-center text-muted-foreground py-16">
-            <h3 className="text-2xl font-headline">Contenido no disponible</h3>
-            <p className="mt-2">No se pudo cargar el contenido para este capítulo. Por favor, intente de nuevo.</p>
-          </div>
-        )}
-      </CardContent>
+          ) : (
+            <div className="text-center text-muted-foreground py-16">
+              <h3 className="text-2xl font-headline">Contenido no disponible</h3>
+              <p className="mt-2">No se pudo cargar el contenido para este capítulo. Por favor, intente de nuevo.</p>
+            </div>
+          )}
+        </CardContent>
+      </div>
     </Card>
   )
 }
