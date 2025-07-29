@@ -35,7 +35,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
 
   useEffect(() => {
     async function fetchAllVersions() {
-      if (!isOpen || versions.length === 0) return;
+      if (!isOpen || versions.length === 0 || !books.length) return;
       setIsLoading(true);
 
       const bookObject = books.find(b => b.name === book);
@@ -51,14 +51,12 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
             return { version: version.abbreviation, text: text };
           }
 
-          // First, try to get from local DB
           const localData = await getChapterFromDb(version.abbreviation, bookObject, chapter);
           if (localData) {
             const verseData = localData.find(v => v.number === verse && v.type === 'verse');
             return { version: version.abbreviation, text: verseData?.text || "No encontrado en BD." };
           }
           
-          // If not in DB, fetch from API
           const bookName = bookObject.name.toLowerCase().replace(/ /g, '');
           const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
           const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
@@ -69,7 +67,12 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
           }
           
           const data = await response.json();
-          const verseDataFromApi = data.chapter?.[0]?.data.find((v: any) => v.number === verse && v.type === 'verse');
+          const verses = data.chapter?.[0]?.data;
+          if (!verses) {
+            return { version: version.abbreviation, text: "Estructura de API inesperada." };
+          }
+          
+          const verseDataFromApi = verses.find((v: any) => v.number === verse && v.type === 'verse');
           return { version: version.abbreviation, text: verseDataFromApi?.text || "No encontrado en API." };
         } catch (e) {
           console.error(`Error fetching verse for ${version.abbreviation}:`, e);
