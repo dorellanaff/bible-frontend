@@ -9,15 +9,17 @@ import { Button } from '@/components/ui/button'
 interface TextSizeAdjusterProps {
   value: number;
   onChange: (value: number) => void;
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
 }
 
-export function TextSizeAdjuster({ value, onChange }: TextSizeAdjusterProps) {
+export function TextSizeAdjuster({ value, onChange, isOpen, onOpenChange }: TextSizeAdjusterProps) {
   const handleSliderChange = (values: number[]) => {
     onChange(values[0])
   }
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Adjust text size">
           <Text className="h-6 w-6" />
