@@ -305,9 +305,7 @@ export default function Home() {
   const showMobileSelectionView = isMobile && mobileView === 'selection';
   const showMobileReadingView = isMobile && mobileView === 'reading';
 
-  const versionsForComparison = comparisonVersions.length > 0
-    ? versions.filter(v => comparisonVersions.includes(v.abbreviation))
-    : versions;
+  const versionsForComparison = versions.filter(v => comparisonVersions.includes(v.abbreviation));
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
