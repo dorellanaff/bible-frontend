@@ -62,10 +62,7 @@ export default function Home() {
 
   // Effect to run on client-side mount
   useEffect(() => {
-    // Artificial delay to show loading animation
-    const timer = setTimeout(() => {
-      setIsClient(true)
-    }, 1500); 
+    setIsClient(true)
 
     // Load saved settings from localStorage
     const storedVersion = localStorage.getItem('bible-version');
@@ -96,7 +93,6 @@ export default function Home() {
       document.documentElement.style.setProperty('--text-size', size.toString())
     }
 
-    return () => clearTimeout(timer);
   }, [books, isMobile])
   
   // Effect to save settings to localStorage
@@ -310,9 +306,10 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4 flex-grow",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow flex flex-row items-center",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
+
             <div className="w-full">
               {showReadingView ? (
                 <div ref={chapterViewerRef}>
