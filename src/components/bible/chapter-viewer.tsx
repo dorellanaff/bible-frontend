@@ -140,7 +140,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
   return (
     <Card 
-      className="card-material overflow-hidden"
+      className="card-material overflow-hidden relative group"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -170,16 +170,29 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
           )}
         </CardContent>
       </div>
-       <CardFooter className="flex justify-between p-4 border-t">
-          <Button onClick={onPreviousChapter} disabled={chapter <= 1} variant="outline">
-              <ChevronLeft className="h-4 w-4" />
-              <span className="hidden sm:inline ml-2">Anterior</span>
-          </Button>
-          <Button onClick={onNextChapter} disabled={chapter >= book.chapters} variant="outline">
-              <span className="hidden sm:inline mr-2">Siguiente</span>
-              <ChevronRight className="h-4 w-4" />
-          </Button>
-      </CardFooter>
+
+       <Button
+        onClick={onPreviousChapter}
+        disabled={chapter <= 1}
+        variant="outline"
+        size="icon"
+        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <ChevronLeft className="h-6 w-6" />
+        <span className="sr-only">Capítulo Anterior</span>
+      </Button>
+
+      <Button
+        onClick={onNextChapter}
+        disabled={chapter >= book.chapters}
+        variant="outline"
+        size="icon"
+        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <ChevronRight className="h-6 w-6" />
+        <span className="sr-only">Capítulo Siguiente</span>
+      </Button>
+
     </Card>
   )
 }
