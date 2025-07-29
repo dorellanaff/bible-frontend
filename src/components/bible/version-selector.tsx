@@ -4,6 +4,7 @@
 import * as React from 'react'
 import type { BibleVersion } from '@/lib/bible-data'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Download, Trash2, CheckCircle, Loader, ChevronsUpDown } from 'lucide-react'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
@@ -17,24 +18,44 @@ interface VersionSelectorProps {
   onDownload: (version: string) => void;
   onDelete: (version: string) => void;
   isVersionDownloaded: (version: string, markAsDownloading?: boolean) => Promise<boolean>;
+  comparisonVersions: string[];
+  onToggleComparisonVersion: (versionAbbr: string) => void;
 }
 
-function VersionList({ versions, onVersionChange, getButtonState }: {
+function VersionList({ 
+    versions, 
+    onVersionChange, 
+    getButtonState,
+    comparisonVersions,
+    onToggleComparisonVersion,
+    handleVersionSelect,
+}: {
     versions: BibleVersion[];
     onVersionChange: (version: string) => void;
     getButtonState: (abbr: string) => React.ReactNode;
+    comparisonVersions: string[];
+    onToggleComparisonVersion: (abbr: string) => void;
+    handleVersionSelect: (abbr: string) => void;
 }) {
     return (
         <div className="flex flex-col gap-1 p-2">
             {versions.map(version => (
-              <div key={version.id} className="flex items-center justify-between">
-                 <Button
-                    variant="ghost"
-                    className="w-full justify-start text-base h-auto py-3"
-                    onClick={() => onVersionChange(version.abbreviation)}
-                >
-                    {version.name} ({version.abbreviation})
-                </Button>
+              <div key={version.id} className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-grow">
+                    <Checkbox
+                        id={`compare-${version.abbreviation}`}
+                        checked={comparisonVersions.includes(version.abbreviation)}
+                        onCheckedChange={() => onToggleComparisonVersion(version.abbreviation)}
+                        aria-label={`Incluir ${version.abbreviation} en comparación`}
+                    />
+                    <Button
+                        variant="ghost"
+                        className="w-full justify-start text-base h-auto py-3 px-2"
+                        onClick={() => handleVersionSelect(version.abbreviation)}
+                    >
+                        <span className="flex-grow text-left">{version.name} ({version.abbreviation})</span>
+                    </Button>
+                </div>
                 <div className="ml-2 pr-2">
                     {getButtonState(version.abbreviation)}
                 </div>
@@ -44,7 +65,16 @@ function VersionList({ versions, onVersionChange, getButtonState }: {
     );
 }
 
-export function VersionSelector({ versions, selectedVersion, onVersionChange, onDownload, onDelete, isVersionDownloaded }: VersionSelectorProps) {
+export function VersionSelector({ 
+  versions, 
+  selectedVersion, 
+  onVersionChange, 
+  onDownload, 
+  onDelete, 
+  isVersionDownloaded,
+  comparisonVersions,
+  onToggleComparisonVersion
+}: VersionSelectorProps) {
   const [downloadStatus, setDownloadStatus] = React.useState<Record<string, 'downloaded' | 'not-downloaded' | 'downloading'>>({});
   const [isOpen, setOpen] = React.useState(false);
   const isMobile = useIsMobile();
@@ -112,7 +142,16 @@ export function VersionSelector({ versions, selectedVersion, onVersionChange, on
     </Button>
   );
 
-  const content = <VersionList versions={versions} onVersionChange={handleVersionSelect} getButtonState={getButtonState} />;
+  const content = (
+    <VersionList 
+        versions={versions} 
+        onVersionChange={onVersionChange} 
+        getButtonState={getButtonState}
+        comparisonVersions={comparisonVersions}
+        onToggleComparisonVersion={onToggleComparisonVersion}
+        handleVersionSelect={handleVersionSelect}
+    />
+  );
 
   if (isMobile) {
     return (
@@ -137,7 +176,7 @@ export function VersionSelector({ versions, selectedVersion, onVersionChange, on
         <PopoverTrigger asChild>
             {triggerButton}
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0" side="bottom" align="start">
+        <PopoverContent className="w-96 p-0" side="bottom" align="start">
             {content}
         </PopoverContent>
     </Popover>

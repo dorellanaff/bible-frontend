@@ -25,6 +25,8 @@ interface AppHeaderProps {
   onDelete: (version: string) => void;
   isVersionDownloaded: (version: string, markAsDownloading?: boolean) => Promise<boolean>;
   readingProgress: number;
+  comparisonVersions: string[];
+  onToggleComparisonVersion: (versionAbbr: string) => void;
 }
 
 export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack, readingProgress, ...versionProps }: AppHeaderProps) {

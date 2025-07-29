@@ -42,6 +42,7 @@ export default function Home() {
   
   const [scrollProgress, setScrollProgress] = useState(0);
   const chapterViewerRef = useRef<HTMLDivElement>(null);
+  const [comparisonVersions, setComparisonVersions] = useState<string[]>([]);
 
 
   const { toast } = useToast();
@@ -69,9 +70,15 @@ export default function Home() {
     const storedBookName = localStorage.getItem('bible-book');
     const storedChapter = localStorage.getItem('bible-chapter');
     const storedTextSize = localStorage.getItem('bible-text-size');
+    const storedComparisonVersions = localStorage.getItem('bible-comparison-versions');
+
 
     if (storedVersion) {
       setVersion(storedVersion);
+    }
+
+    if (storedComparisonVersions) {
+      setComparisonVersions(JSON.parse(storedComparisonVersions));
     }
     
     // Only set book and chapter if both are present
@@ -105,8 +112,9 @@ export default function Home() {
       if (chapter !== null) {
         localStorage.setItem('bible-chapter', chapter.toString());
       }
+      localStorage.setItem('bible-comparison-versions', JSON.stringify(comparisonVersions));
     }
-  }, [version, book, chapter, isClient]);
+  }, [version, book, chapter, isClient, comparisonVersions]);
   
   // Effect for scroll progress
   useEffect(() => {
@@ -273,6 +281,18 @@ export default function Home() {
       toast({ variant: "destructive", title: "Error al Eliminar", description: `No se pudo eliminar la versión ${versionToDelete}.` });
     }
   }
+  
+  const handleToggleComparisonVersion = (versionAbbr: string) => {
+    setComparisonVersions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(versionAbbr)) {
+        newSet.delete(versionAbbr);
+      } else {
+        newSet.add(versionAbbr);
+      }
+      return Array.from(newSet);
+    });
+  };
 
   if (!isClient) {
     return <LoadingAnimation />;
@@ -284,6 +304,10 @@ export default function Home() {
   const showReadingView = book && chapter;
   const showMobileSelectionView = isMobile && mobileView === 'selection';
   const showMobileReadingView = isMobile && mobileView === 'reading';
+
+  const versionsForComparison = comparisonVersions.length > 0
+    ? versions.filter(v => comparisonVersions.includes(v.abbreviation))
+    : versions;
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -299,6 +323,8 @@ export default function Home() {
         onDelete={handleDeleteVersion}
         isVersionDownloaded={isVersionDownloaded}
         readingProgress={showReadingView ? scrollProgress : 0}
+        comparisonVersions={comparisonVersions}
+        onToggleComparisonVersion={handleToggleComparisonVersion}
       />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -353,7 +379,7 @@ export default function Home() {
             isOpen={isCompareOpen}
             onOpenChange={setCompareOpen}
             verseInfo={selectedVerse}
-            versions={versions}
+            versions={versionsForComparison}
             books={books}
           />
           <ConcordanceDialog
