@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import { type Book, type VerseData, type BibleVersion, getBibleVersions, getBibleBooks } from '@/lib/bible-data'
+import type { Book, type VerseData, type BibleVersion, getBibleVersions, getBibleBooks } from '@/lib/bible-data'
 import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
 import { VersionSelector } from '@/components/bible/version-selector'
@@ -13,6 +13,8 @@ import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent } from '@/components/ui/card';
 import { API_BASE_URL } from '@/lib/api';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
@@ -31,6 +33,10 @@ export default function Home() {
   
   const [chapterContent, setChapterContent] = useState<VerseData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const [mobileView, setMobileView] = useState<'selection' | 'reading'>('selection');
+  const isMobile = useIsMobile();
+
 
   const { toast } = useToast();
 
@@ -69,7 +75,11 @@ export default function Home() {
     }
 
     if (storedChapter) {
-      setChapter(parseInt(storedChapter, 10));
+      const chapterNum = parseInt(storedChapter, 10);
+      setChapter(chapterNum);
+      if (isMobile && storedBookName) {
+        setMobileView('reading');
+      }
     }
     
     if (storedTextSize) {
@@ -77,7 +87,7 @@ export default function Home() {
       setTextSize(size)
       document.documentElement.style.setProperty('--text-size', size.toString())
     }
-  }, [books])
+  }, [books, isMobile])
   
   // Effect to save settings to localStorage
   useEffect(() => {
@@ -102,12 +112,6 @@ export default function Home() {
       const dbContent = await getChapterFromDb(version, book, chapter);
       if (dbContent) {
         setChapterContent(dbContent);
-        // Check if we need to save this version's chapter locally after fetching from DB
-        const versionIsMarkedForDownload = await isVersionDownloaded(version);
-        if (versionIsMarkedForDownload) {
-          // This might be redundant if already in DB, but ensures consistency
-          await saveChapterToDb(version, book, chapter, dbContent);
-        }
         return;
       }
 
@@ -154,6 +158,13 @@ export default function Home() {
   
   const handleChapterSelect = (selectedChapter: number) => {
     setChapter(selectedChapter)
+    if (isMobile) {
+      setMobileView('reading');
+    }
+  }
+
+  const handleBackToSelection = () => {
+    setMobileView('selection');
   }
 
   const handleCompare = (verse: SelectedVerse) => {
@@ -209,13 +220,25 @@ export default function Home() {
 
   const oldTestamentBooks = books.filter(b => b.testament === 'AT');
   const newTestamentBooks = books.filter(b => b.testament === 'NT');
+  
+  const showReadingView = book && chapter;
+  const showSelectionView = !isMobile || (isMobile && mobileView === 'selection');
+  const showMobileReadingView = isMobile && mobileView === 'reading';
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <AppHeader textSize={textSize} onTextSizeChange={handleTextSizeChange} />
+      <AppHeader 
+        textSize={textSize} 
+        onTextSizeChange={handleTextSizeChange} 
+        showBack={showMobileReadingView}
+        onBack={handleBackToSelection}
+      />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          <aside className="w-full lg:w-1/3 xl:w-1/4 space-y-6 lg:sticky lg:top-8 self-start">
+          <aside className={cn(
+            "w-full lg:w-1/3 xl:w-1/4 space-y-6 lg:sticky lg:top-8 self-start",
+            { 'hidden': showMobileReadingView, 'block': showSelectionView }
+          )}>
             <VersionSelector
               versions={versions}
               selectedVersion={version}
@@ -233,8 +256,12 @@ export default function Home() {
               onChapterSelect={handleChapterSelect}
             />
           </aside>
-          <section className="w-full lg:w-2/3 xl:w-3/4">
-            {book && chapter ? (
+          
+          <section className={cn(
+            "w-full lg:w-2/3 xl:w-3/4",
+            { 'hidden': isMobile && mobileView === 'selection', 'block': !isMobile || showMobileReadingView }
+          )}>
+            {showReadingView ? (
               <ChapterViewer
                 book={book}
                 chapter={chapter}
