@@ -52,17 +52,19 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
-      if (chapter >= book.chapters) return;
-      setAnimationClass('animate-turn-page-out');
-      setTimeout(() => {
-        onNextChapter();
-      }, 500); // Increased duration for the animation
+      if (chapter < book.chapters) {
+        setAnimationClass('animate-turn-page-out');
+        setTimeout(() => {
+          onNextChapter();
+        }, 500);
+      }
     } else if (isRightSwipe) {
-      if (chapter <= 1) return;
-      setAnimationClass('animate-turn-page-out-reverse');
-      setTimeout(() => {
-        onPreviousChapter();
-      }, 500); // Increased duration for the animation
+      if (chapter > 1) {
+        setAnimationClass('animate-turn-page-out-reverse');
+        setTimeout(() => {
+          onPreviousChapter();
+        }, 500);
+      }
     }
   };
 
