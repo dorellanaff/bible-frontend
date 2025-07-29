@@ -68,7 +68,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   }
 
   return (
-    <Card className="bg-card shadow-lg">
+    <Card className="card-material">
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Libro y Capítulo</CardTitle>
       </CardHeader>

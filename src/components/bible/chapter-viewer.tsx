@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from 'react'
@@ -45,11 +46,11 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     }
 
     return (
-       <p key={key}>
+       <p key={key} className="leading-relaxed">
         <Popover>
           <PopoverTrigger asChild>
-            <span className="cursor-pointer hover:bg-secondary/50 rounded-md p-1 transition-colors">
-              <strong className="font-bold pr-2">{verseData.number}</strong>
+            <span className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors">
+              <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
               {verseData.text}
             </span>
           </PopoverTrigger>
@@ -82,7 +83,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
   }
 
   return (
-    <Card className="bg-card shadow-lg">
+    <Card className="card-material">
       <CardHeader>
         <CardTitle className="font-headline text-3xl md:text-4xl">{book.name} {chapter}</CardTitle>
       </CardHeader>

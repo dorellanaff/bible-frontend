@@ -48,7 +48,8 @@ export default function Home() {
       setBooks(fetchedBooks);
 
       if (fetchedVersions.length > 0 && !localStorage.getItem('bible-version')) {
-        setVersion(fetchedVersions[0].abbreviation);
+        const defaultVersion = fetchedVersions.find(v => v.abbreviation === 'NVI') || fetchedVersions[0];
+        setVersion(defaultVersion.abbreviation);
       }
     }
     fetchData();
@@ -182,6 +183,8 @@ export default function Home() {
   const handleDownloadVersion = async (versionToDownload: string) => {
     toast({ title: `Iniciando descarga de ${versionToDownload}`, description: "Esto puede tardar unos momentos..." });
     try {
+      await isVersionDownloaded(versionToDownload, true); // Mark as downloading
+
       for (const currentBook of books) {
         for (let currentChapter = 1; currentChapter <= currentBook.chapters; currentChapter++) {
           const existing = await getChapterFromDb(versionToDownload, currentBook, currentChapter);
@@ -202,6 +205,7 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to download version:", error);
       toast({ variant: "destructive", title: "Error en la Descarga", description: `No se pudo descargar la versión ${versionToDownload}.` });
+      await isVersionDownloaded(versionToDownload, false); // Unmark on failure
     }
   }
 
@@ -239,7 +243,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className={cn(
             "w-full lg:w-1/3 xl:w-1/4 space-y-6 lg:sticky lg:top-8 self-start",
-            { 'hidden': showMobileReadingView, 'block': showSelectionView }
+            { 'hidden lg:block': showMobileReadingView, 'block': showSelectionView }
           )}>
             <VersionSelector
               versions={versions}
@@ -261,7 +265,7 @@ export default function Home() {
           
           <section className={cn(
             "w-full lg:w-2/3 xl:w-3/4",
-            { 'hidden': isMobile && mobileView === 'selection', 'block': !isMobile || showMobileReadingView }
+            { 'hidden lg:block': isMobile && mobileView === 'selection', 'block': !isMobile || showMobileReadingView }
           )}>
             {showReadingView ? (
               <ChapterViewer
@@ -274,7 +278,7 @@ export default function Home() {
                 onConcordance={handleConcordance}
               />
             ) : (
-                <Card className="bg-card shadow-lg flex items-center justify-center h-96">
+                <Card className="card-material flex items-center justify-center h-96">
                     <CardContent className="text-center text-muted-foreground p-6">
                         <h3 className="text-2xl font-headline">Bienvenido a Biblia Viva</h3>
                         <p className="mt-2">Por favor, selecciona un libro y capítulo para comenzar a leer.</p>
