@@ -231,6 +231,10 @@ export default function Home() {
   }
 
   const handleCompare = (verse: SelectedVerse) => {
+    if (versions.length === 0) {
+      toast({ variant: "destructive", title: "Error", description: "Las versiones aún no se han cargado. Inténtalo de nuevo en un momento." });
+      return;
+    }
     setSelectedVerse(verse);
     setCompareOpen(true);
   }

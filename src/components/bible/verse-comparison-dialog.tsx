@@ -35,7 +35,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
 
   useEffect(() => {
     async function fetchAllVersions() {
-      if (!isOpen) return;
+      if (!isOpen || versions.length === 0) return;
       setIsLoading(true);
 
       const bookObject = books.find(b => b.name === book);
@@ -96,7 +96,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">
-            {isLoading ? (
+            {isLoading && versions.length > 0 ? (
                 versions.map(version => (
                     <div key={version.abbreviation} className="p-4 rounded-lg bg-secondary/50 space-y-2">
                         <Skeleton className="h-5 w-24" />
