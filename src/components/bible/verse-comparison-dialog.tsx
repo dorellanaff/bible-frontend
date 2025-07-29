@@ -39,7 +39,11 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
         return;
     }
     
-    if (versions.length === 0 || !books.length) return;
+    if (versions.length === 0 || !books.length) {
+        // If no versions are passed, clear comparisons
+        setComparisons([]);
+        return;
+    };
 
     // Set initial loading state for all versions
     const initialComparisons = versions.map(v => ({
@@ -105,21 +109,27 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
-            <div className="grid gap-4 py-4">
-                {comparisons.map(item => (
-                    <div key={item.version} className="p-4 rounded-lg bg-secondary/50">
-                        <h4 className="font-bold text-lg font-headline text-primary">{item.version}</h4>
-                        {item.loading ? (
-                          <div className="space-y-2 mt-1">
-                            <Skeleton className="h-4 w-full" />
-                            <Skeleton className="h-4 w-3/4" />
-                          </div>
-                        ) : (
-                          <p className="mt-1 text-readable">{item.text || "Versículo no disponible en esta versión."}</p>
-                        )}
-                    </div>
-                ))}
-            </div>
+            {comparisons.length > 0 ? (
+                <div className="grid gap-4 py-4">
+                    {comparisons.map(item => (
+                        <div key={item.version} className="p-4 rounded-lg bg-secondary/50">
+                            <h4 className="font-bold text-lg font-headline text-primary">{item.version}</h4>
+                            {item.loading ? (
+                            <div className="space-y-2 mt-1">
+                                <Skeleton className="h-4 w-full" />
+                                <Skeleton className="h-4 w-3/4" />
+                            </div>
+                            ) : (
+                            <p className="mt-1 text-readable">{item.text || "Versículo no disponible en esta versión."}</p>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-40 text-center text-muted-foreground">
+                    <p>Debe seleccionar al menos una versión para comparar.</p>
+                </div>
+            )}
         </ScrollArea>
       </DialogContent>
     </Dialog>
