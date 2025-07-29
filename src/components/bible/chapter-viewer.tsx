@@ -38,13 +38,14 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
   }
   
-  const renderVerse = (verseData: VerseData) => {
+  const renderVerse = (verseData: VerseData, index: number) => {
+    const key = `${verseData.type}-${verseData.number}-${index}`;
     if (verseData.type === 'title') {
-      return <h3 key={`title-${verseData.number}`} className="text-xl font-bold font-headline mt-6 mb-2 text-primary">{verseData.text}</h3>;
+      return <h3 key={key} className="text-xl font-bold font-headline mt-6 mb-2 text-primary">{verseData.text}</h3>;
     }
 
     return (
-       <p key={verseData.number}>
+       <p key={key}>
         <Popover>
           <PopoverTrigger asChild>
             <span className="cursor-pointer hover:bg-secondary/50 rounded-md p-1 transition-colors">
