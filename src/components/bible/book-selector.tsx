@@ -100,18 +100,18 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
       </Card>
       
       <div 
-        className="card-material overflow-hidden max-h-[calc(100vh-12rem)]"
+        className="card-material"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="h-full">
             {activeTab === 'antiguo' ? (
-                <ScrollArea className="h-full p-4" viewportRef={atScrollRef}>
+                <ScrollArea className="h-[calc(100vh-12rem)] p-4" viewportRef={atScrollRef}>
                     <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
                 </ScrollArea>
             ): (
-                <ScrollArea className="h-full p-4" viewportRef={ntScrollRef}>
+                <ScrollArea className="h-[calc(100vh-12rem)] p-4" viewportRef={ntScrollRef}>
                     <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
                 </ScrollArea>
             )}
