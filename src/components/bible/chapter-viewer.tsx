@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
-import type { Book, VerseData } from '@/lib/bible-data'
+import type { BibleVersion, Book, VerseData } from '@/lib/bible-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -10,18 +10,19 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 
-type SelectedVerse = { book: string; chapter: number; verse: number; text: string; };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: BibleVersion };
 
 interface ChapterViewerProps {
   book: Book;
   chapter: number;
+  version: BibleVersion;
   content: VerseData[];
   isLoading: boolean;
   onCompareVerse: (verse: SelectedVerse) => void;
   onConcordance: (verse: SelectedVerse) => void;
 }
 
-export function ChapterViewer({ book, chapter, content, isLoading, onCompareVerse, onConcordance }: ChapterViewerProps) {
+export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance }: ChapterViewerProps) {
   const { toast } = useToast()
 
   const copyToClipboard = (text: string) => {
@@ -34,7 +35,7 @@ export function ChapterViewer({ book, chapter, content, isLoading, onCompareVers
 
   const handleAction = (verseData: VerseData, action: (verse: SelectedVerse) => void) => {
     if(verseData.type !== 'verse') return;
-    action({ book: book.name, chapter, verse: verseData.number, text: verseData.text });
+    action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
   }
   
   const renderVerse = (verseData: VerseData) => {

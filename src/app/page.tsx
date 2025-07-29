@@ -11,10 +11,10 @@ import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialo
 import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 import { useToast } from "@/hooks/use-toast"
 
-type SelectedVerse = { book: string; chapter: number; verse: number; text: string; };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: BibleVersion; };
 
 export default function Home() {
-  const [version, setVersion] = useState<BibleVersion>('RVR1960')
+  const [version, setVersion] = useState<BibleVersion>('NVI')
   const [book, setBook] = useState<Book>(BIBLE_BOOKS_NT.find(b => b.name === 'Filipenses')!)
   const [chapter, setChapter] = useState<number>(4)
   const [textSize, setTextSize] = useState(1)
@@ -174,6 +174,7 @@ export default function Home() {
             <ChapterViewer
               book={book}
               chapter={chapter}
+              version={version}
               content={chapterContent}
               isLoading={isLoading}
               onCompareVerse={handleCompare}

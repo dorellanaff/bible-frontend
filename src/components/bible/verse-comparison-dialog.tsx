@@ -15,6 +15,7 @@ interface VerseComparisonDialogProps {
     chapter: number;
     verse: number;
     text: string;
+    version: BibleVersion; // Assuming version is passed here
   };
 }
 
@@ -24,7 +25,7 @@ interface VerseComparison {
 }
 
 export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: VerseComparisonDialogProps) {
-  const { book, chapter, verse, text } = verseInfo;
+  const { book, chapter, verse, text, version: currentVersion } = verseInfo;
   const [comparisons, setComparisons] = useState<VerseComparison[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +41,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
           return;
       }
       
-      const otherVersions = BIBLE_VERSIONS.filter(v => v !== 'NVI');
+      const otherVersions = BIBLE_VERSIONS.filter(v => v !== currentVersion);
       
       const fetchPromises = otherVersions.map(async (version) => {
         try {
@@ -65,13 +66,13 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
       
       const results = await Promise.all(fetchPromises);
       // Add the current verse's version to the top of the list
-      const allResults = [{ version: 'NVI', text }, ...results];
+      const allResults = [{ version: currentVersion, text }, ...results];
       setComparisons(allResults);
       setIsLoading(false);
     }
     
     fetchAllVersions();
-  }, [isOpen, book, chapter, verse, text]);
+  }, [isOpen, book, chapter, verse, text, currentVersion]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
