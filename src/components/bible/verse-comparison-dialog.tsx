@@ -36,7 +36,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
         try {
           const bookName = book.toLowerCase().replace(/ /g, '');
           const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-          const response = await fetch(`http://ec2-3-134-107-239.us-east-2.compute.amazonaws.com:5001/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+          const response = await fetch(`https://ec2-3-134-107-239.us-east-2.compute.amazonaws.com/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
           if (!response.ok) return { version, text: null };
           
           const data = await response.json();
