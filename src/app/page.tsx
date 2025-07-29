@@ -69,19 +69,17 @@ export default function Home() {
     if (storedVersion) {
       setVersion(storedVersion);
     }
-
-    if (storedBookName && books.length > 0) {
+    
+    // Only set book and chapter if both are present
+    if (storedBookName && storedChapter && books.length > 0) {
       const foundBook = books.find(b => b.name === storedBookName);
       if (foundBook) {
         setBook(foundBook);
-      }
-    }
-
-    if (storedChapter) {
-      const chapterNum = parseInt(storedChapter, 10);
-      setChapter(chapterNum);
-      if (isMobile && storedBookName) {
-        setMobileView('reading');
+        const chapterNum = parseInt(storedChapter, 10);
+        setChapter(chapterNum);
+        if (isMobile) {
+          setMobileView('reading');
+        }
       }
     }
     
