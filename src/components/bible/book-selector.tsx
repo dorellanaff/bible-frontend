@@ -17,7 +17,7 @@ interface BookSelectorProps {
 
 function BookList({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book) => void }) {
   return (
-    <div className="flex flex-col space-y-2">
+    <div className="flex flex-col space-y-2 p-1">
       {books.map(book => (
         <Button
           key={book.name}
@@ -35,25 +35,27 @@ function BookList({ books, selectedBook, onBookSelect }: { books: Book[], select
 export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBook, onBookSelect }: BookSelectorProps) {
   return (
     <Card className="card-material lg:flex lg:flex-col lg:h-[calc(100vh-5rem)]">
-      <CardHeader>
+      <CardHeader className="flex-shrink-0">
         <CardTitle className="font-headline text-2xl">Seleccionar Libro</CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow flex flex-col">
-        <Tabs defaultValue="antiguo" className="w-full flex-grow flex flex-col">
-          <TabsList className="grid w-full grid-cols-2">
+      <CardContent className="flex-grow flex flex-col p-0 px-4 pb-4 overflow-hidden">
+        <Tabs defaultValue="antiguo" className="w-full flex-grow flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
             <TabsTrigger value="antiguo" className="font-headline">Antiguo Testamento</TabsTrigger>
             <TabsTrigger value="nuevo" className="font-headline">Nuevo Testamento</TabsTrigger>
           </TabsList>
-          <TabsContent value="antiguo" className="mt-4 flex-grow">
+          <div className="flex-grow mt-4 overflow-y-auto">
+            <TabsContent value="antiguo" className="m-0">
+                <ScrollArea className="h-full">
+                  <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+                </ScrollArea>
+            </TabsContent>
+            <TabsContent value="nuevo" className="m-0">
               <ScrollArea className="h-full">
-                <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+                <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
               </ScrollArea>
-          </TabsContent>
-          <TabsContent value="nuevo" className="mt-4 flex-grow">
-            <ScrollArea className="h-full">
-              <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
-            </ScrollArea>
-          </TabsContent>
+            </TabsContent>
+          </div>
         </Tabs>
       </CardContent>
     </Card>
