@@ -5,6 +5,7 @@ import type * as React from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { TextSizeAdjuster } from './text-size-adjuster'
 import { Button } from '../ui/button'
+import { cn } from '@/lib/utils'
 
 interface AppHeaderProps {
   textSize: number;
@@ -27,7 +28,10 @@ export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack
             )}
           </div>
           <div className="w-1/3 text-center">
-            <h1 className="text-3xl md:text-4xl font-headline font-bold text-foreground">
+             <h1 className={cn(
+              "text-3xl md:text-4xl font-headline font-bold text-foreground",
+              { "hidden sm:block": showBack }
+            )}>
               Biblia Viva
             </h1>
           </div>
