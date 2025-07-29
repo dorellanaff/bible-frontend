@@ -1,3 +1,4 @@
+
 "use client"
 
 import type { Book } from '@/lib/bible-data'
@@ -5,24 +6,23 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { cn } from '@/lib/utils'
 
 interface BookSelectorProps {
   oldTestamentBooks: Book[];
   newTestamentBooks: Book[];
-  selectedBook: Book;
+  selectedBook: Book | null;
   onBookSelect: (book: Book) => void;
-  selectedChapter: number;
+  selectedChapter: number | null;
   onChapterSelect: (chapter: number) => void;
 }
 
-function BookGrid({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book, onBookSelect: (book: Book) => void }) {
+function BookGrid({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book) => void }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2">
       {books.map(book => (
         <Button
           key={book.name}
-          variant={selectedBook.name === book.name ? 'default' : 'secondary'}
+          variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
           onClick={() => onBookSelect(book)}
           className="font-headline justify-start"
         >
@@ -33,7 +33,7 @@ function BookGrid({ books, selectedBook, onBookSelect }: { books: Book[], select
   )
 }
 
-function ChapterGrid({ book, selectedChapter, onChapterSelect }: { book: Book, selectedChapter: number, onChapterSelect: (chapter: number) => void }) {
+function ChapterGrid({ book, selectedChapter, onChapterSelect }: { book: Book, selectedChapter: number | null, onChapterSelect: (chapter: number) => void }) {
   const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
   return (
     <div className="mt-4">
@@ -75,9 +75,11 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
             <BookGrid books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
           </TabsContent>
         </Tabs>
-        <div className="mt-4 border-t pt-4">
-          <ChapterGrid book={selectedBook} selectedChapter={selectedChapter} onChapterSelect={onChapterSelect} />
-        </div>
+        {selectedBook && (
+            <div className="mt-4 border-t pt-4">
+            <ChapterGrid book={selectedBook} selectedChapter={selectedChapter} onChapterSelect={onChapterSelect} />
+            </div>
+        )}
       </CardContent>
     </Card>
   )
