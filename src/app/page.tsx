@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import type { Book, type VerseData, type BibleVersion } from '@/lib/bible-data'
+import type { Book, VerseData, BibleVersion } from '@/lib/bible-data'
 import { getBibleVersions, getBibleBooks } from '@/lib/bible-data'
 import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
