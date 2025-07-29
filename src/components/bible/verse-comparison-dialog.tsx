@@ -55,19 +55,24 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
           const localData = await getChapterFromDb(version.abbreviation, bookObject, chapter);
           if (localData) {
             const verseData = localData.find(v => v.number === verse && v.type === 'verse');
-            return { version: version.abbreviation, text: verseData?.text || null };
+            return { version: version.abbreviation, text: verseData?.text || "No encontrado en BD." };
           }
           
           // If not in DB, fetch from API
           const bookName = bookObject.name.toLowerCase().replace(/ /g, '');
           const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
           const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
-          if (!response.ok) return { version: version.abbreviation, text: null };
+          
+          if (!response.ok) {
+            console.warn(`API request failed for ${version.abbreviation}: ${response.statusText}`);
+            return { version: version.abbreviation, text: null };
+          }
           
           const data = await response.json();
           const verseDataFromApi = data.chapter?.[0]?.data.find((v: any) => v.number === verse && v.type === 'verse');
-          return { version: version.abbreviation, text: verseDataFromApi?.text || null };
+          return { version: version.abbreviation, text: verseDataFromApi?.text || "No encontrado en API." };
         } catch (e) {
+          console.error(`Error fetching verse for ${version.abbreviation}:`, e);
           return { version: version.abbreviation, text: null };
         }
       });
