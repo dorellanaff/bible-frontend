@@ -1,11 +1,12 @@
 "use client"
 
-import { BIBLE_VERSIONS, ALL_BIBLE_BOOKS, type BibleVersion } from '@/lib/bible-data'
+import { ALL_BIBLE_BOOKS, type BibleVersion } from '@/lib/bible-data'
 import { getChapterFromDb } from '@/lib/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useEffect, useState } from 'react'
 import { Skeleton } from '../ui/skeleton';
+import { API_BASE_URL } from '@/lib/api';
 
 interface VerseComparisonDialogProps {
   isOpen: boolean;
@@ -15,8 +16,9 @@ interface VerseComparisonDialogProps {
     chapter: number;
     verse: number;
     text: string;
-    version: BibleVersion; // Assuming version is passed here
+    version: string;
   };
+  versions: BibleVersion[];
 }
 
 interface VerseComparison {
@@ -24,8 +26,8 @@ interface VerseComparison {
     text: string | null;
 }
 
-export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: VerseComparisonDialogProps) {
-  const { book, chapter, verse, text } = verseInfo;
+export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, versions }: VerseComparisonDialogProps) {
+  const { book, chapter, verse, text, version: currentVersion } = verseInfo;
   const [comparisons, setComparisons] = useState<VerseComparison[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -41,26 +43,30 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
           return;
       }
       
-      const fetchPromises = BIBLE_VERSIONS.map(async (version) => {
+      const fetchPromises = versions.map(async (version) => {
         try {
+          if (version.abbreviation === currentVersion) {
+            return { version: version.abbreviation, text: text };
+          }
+
           // First, try to get from local DB
-          const localData = await getChapterFromDb(version, bookObject, chapter);
+          const localData = await getChapterFromDb(version.abbreviation, bookObject, chapter);
           if (localData) {
             const verseData = localData.find(v => v.number === verse && v.type === 'verse');
-            return { version, text: verseData?.text || null };
+            return { version: version.abbreviation, text: verseData?.text || null };
           }
           
           // If not in DB, fetch from API
           const bookName = book.toLowerCase().replace(/ /g, '');
-          const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-          const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
-          if (!response.ok) return { version, text: null };
+          const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
+          const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+          if (!response.ok) return { version: version.abbreviation, text: null };
           
           const data = await response.json();
           const verseDataFromApi = data.chapter?.[0]?.data.find((v: any) => v.number === verse && v.type === 'verse');
-          return { version, text: verseDataFromApi?.text || null };
+          return { version: version.abbreviation, text: verseDataFromApi?.text || null };
         } catch (e) {
-          return { version, text: null };
+          return { version: version.abbreviation, text: null };
         }
       });
       
@@ -70,7 +76,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
     }
     
     fetchAllVersions();
-  }, [isOpen, book, chapter, verse]);
+  }, [isOpen, book, chapter, verse, versions, currentVersion, text]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -84,8 +90,8 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">
             {isLoading ? (
-                BIBLE_VERSIONS.map(version => (
-                    <div key={version} className="p-4 rounded-lg bg-secondary/50 space-y-2">
+                versions.map(version => (
+                    <div key={version.abbreviation} className="p-4 rounded-lg bg-secondary/50 space-y-2">
                         <Skeleton className="h-5 w-24" />
                         <Skeleton className="h-4 w-full" />
                         <Skeleton className="h-4 w-3/4" />

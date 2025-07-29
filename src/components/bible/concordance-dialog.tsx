@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent } from '@/components/ui/card'
 import { useState, useEffect } from "react";
-import { BibleVersion, VerseData } from "@/lib/bible-data";
+import { VerseData } from "@/lib/bible-data";
 
 interface ConcordanceDialogProps {
   isOpen: boolean;
@@ -14,7 +14,7 @@ interface ConcordanceDialogProps {
     chapter: number;
     verse: number;
     text: string;
-    version: BibleVersion;
+    version: string;
   };
 }
 

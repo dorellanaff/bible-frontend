@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import { BIBLE_VERSIONS, BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, type BibleVersion, type Book, type VerseData, ALL_BIBLE_BOOKS } from '@/lib/bible-data'
+import { BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, type Book, type VerseData, ALL_BIBLE_BOOKS, type BibleVersion, getBibleVersions } from '@/lib/bible-data'
 import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
 import { VersionSelector } from '@/components/bible/version-selector'
@@ -12,11 +12,13 @@ import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialo
 import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent } from '@/components/ui/card';
+import { API_BASE_URL } from '@/lib/api';
 
-type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: BibleVersion; };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
 export default function Home() {
-  const [version, setVersion] = useState<BibleVersion>('NVI')
+  const [versions, setVersions] = useState<BibleVersion[]>([]);
+  const [version, setVersion] = useState<string>('NVI')
   const [book, setBook] = useState<Book | null>(null)
   const [chapter, setChapter] = useState<number | null>(null)
   const [textSize, setTextSize] = useState(1)
@@ -31,17 +33,25 @@ export default function Home() {
 
   const { toast } = useToast();
 
+  useEffect(() => {
+    async function fetchVersions() {
+      const fetchedVersions = await getBibleVersions();
+      setVersions(fetchedVersions);
+    }
+    fetchVersions();
+  }, []);
+
   // Effect to run on client-side mount
   useEffect(() => {
     setIsClient(true)
 
     // Load saved settings from localStorage
-    const storedVersion = localStorage.getItem('bible-version') as BibleVersion;
+    const storedVersion = localStorage.getItem('bible-version');
     const storedBookName = localStorage.getItem('bible-book');
     const storedChapter = localStorage.getItem('bible-chapter');
     const storedTextSize = localStorage.getItem('bible-text-size');
 
-    if (storedVersion && BIBLE_VERSIONS.includes(storedVersion)) {
+    if (storedVersion) {
       setVersion(storedVersion);
     }
 
@@ -97,7 +107,7 @@ export default function Home() {
 
       const bookName = book.name.toLowerCase().replace(/ /g, '');
       const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-      const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+      const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
       
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -150,7 +160,7 @@ export default function Home() {
     setConcordanceOpen(true);
   }
   
-  const handleDownloadVersion = async (versionToDownload: BibleVersion) => {
+  const handleDownloadVersion = async (versionToDownload: string) => {
     toast({ title: `Iniciando descarga de ${versionToDownload}`, description: "Esto puede tardar unos momentos..." });
     try {
       for (const currentBook of ALL_BIBLE_BOOKS) {
@@ -160,7 +170,7 @@ export default function Home() {
 
           const bookName = currentBook.name.toLowerCase().replace(/ /g, '');
           const apiVersion = versionToDownload === 'RVR1960' ? 'RV1960' : versionToDownload;
-          const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${currentChapter}?version=${apiVersion}`);
+          const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${currentChapter}?version=${apiVersion}`);
           
           if(response.ok) {
             const data = await response.json();
@@ -176,7 +186,7 @@ export default function Home() {
     }
   }
 
-  const handleDeleteVersion = async (versionToDelete: BibleVersion) => {
+  const handleDeleteVersion = async (versionToDelete: string) => {
     toast({ title: `Eliminando ${versionToDelete} de la memoria local...` });
     try {
       await deleteVersionFromDb(versionToDelete);
@@ -198,7 +208,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className="w-full lg:w-1/3 xl:w-1/4 space-y-6 lg:sticky lg:top-8 self-start">
             <VersionSelector
-              versions={BIBLE_VERSIONS}
+              versions={versions}
               selectedVersion={version}
               onVersionChange={setVersion}
               onDownload={handleDownloadVersion}
@@ -243,6 +253,7 @@ export default function Home() {
             isOpen={isCompareOpen}
             onOpenChange={setCompareOpen}
             verseInfo={selectedVerse}
+            versions={versions}
           />
           <ConcordanceDialog
             isOpen={isConcordanceOpen}

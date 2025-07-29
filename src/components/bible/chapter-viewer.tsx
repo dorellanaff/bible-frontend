@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
-import type { BibleVersion, Book, VerseData } from '@/lib/bible-data'
+import type { Book, VerseData } from '@/lib/bible-data'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -10,12 +10,12 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 
-type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: BibleVersion };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string };
 
 interface ChapterViewerProps {
   book: Book;
   chapter: number;
-  version: BibleVersion;
+  version: string;
   content: VerseData[];
   isLoading: boolean;
   onCompareVerse: (verse: SelectedVerse) => void;

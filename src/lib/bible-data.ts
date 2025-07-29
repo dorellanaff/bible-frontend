@@ -1,5 +1,25 @@
-export const BIBLE_VERSIONS = ['NVI', 'RVR1960', 'LBLA'] as const;
-export type BibleVersion = typeof BIBLE_VERSIONS[number];
+import { API_BASE_URL } from "./api";
+
+export interface BibleVersion {
+    id: number;
+    name: string;
+    abbreviation: string;
+}
+
+export async function getBibleVersions(): Promise<BibleVersion[]> {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/bible/versions`);
+        if (!response.ok) {
+            console.error("Failed to fetch versions");
+            return [];
+        }
+        return response.json();
+    } catch (error) {
+        console.error("Error fetching versions:", error);
+        return [];
+    }
+}
+
 
 export interface Book {
   name: string;
