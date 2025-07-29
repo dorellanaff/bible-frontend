@@ -1,6 +1,6 @@
 "use client"
 
-import { BIBLE_VERSIONS, ALL_BIBLE_BOOKS } from '@/lib/bible-data'
+import { BIBLE_VERSIONS, ALL_BIBLE_BOOKS, type BibleVersion } from '@/lib/bible-data'
 import { getChapterFromDb } from '@/lib/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -24,7 +24,7 @@ interface VerseComparison {
 }
 
 export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: VerseComparisonDialogProps) {
-  const { book, chapter, verse } = verseInfo;
+  const { book, chapter, verse, text } = verseInfo;
   const [comparisons, setComparisons] = useState<VerseComparison[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,16 +40,16 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
           return;
       }
       
-      const fetchPromises = BIBLE_VERSIONS.map(async (version) => {
+      const otherVersions = BIBLE_VERSIONS.filter(v => v !== 'NVI');
+      
+      const fetchPromises = otherVersions.map(async (version) => {
         try {
-          // 1. Try to get from DB first
           const localData = await getChapterFromDb(version, bookObject, chapter);
           if (localData) {
             const verseData = localData.find(v => v.number === verse && v.type === 'verse');
             return { version, text: verseData?.text || null };
           }
           
-          // 2. If not in DB, fetch from API
           const bookName = book.toLowerCase().replace(/ /g, '');
           const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
           const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
@@ -64,12 +64,14 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
       });
       
       const results = await Promise.all(fetchPromises);
-      setComparisons(results);
+      // Add the current verse's version to the top of the list
+      const allResults = [{ version: 'NVI', text }, ...results];
+      setComparisons(allResults);
       setIsLoading(false);
     }
     
     fetchAllVersions();
-  }, [isOpen, book, chapter, verse]);
+  }, [isOpen, book, chapter, verse, text]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
