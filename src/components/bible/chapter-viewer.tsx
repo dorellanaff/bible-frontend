@@ -2,9 +2,9 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
+import { BookOpen, Copy, Droplet, Share2, BookCopy, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -52,11 +52,13 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     const isRightSwipe = distance < -minSwipeDistance;
 
     if (isLeftSwipe) {
+      if (chapter >= book.chapters) return;
       setAnimationClass('animate-slide-out-to-left');
       setTimeout(() => {
         onNextChapter();
       }, 200);
     } else if (isRightSwipe) {
+      if (chapter <= 1) return;
       setAnimationClass('animate-slide-out-to-right');
       setTimeout(() => {
         onPreviousChapter();
@@ -168,6 +170,16 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
           )}
         </CardContent>
       </div>
+       <CardFooter className="flex justify-between p-4 border-t">
+          <Button onClick={onPreviousChapter} disabled={chapter <= 1} variant="outline">
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Anterior</span>
+          </Button>
+          <Button onClick={onNextChapter} disabled={chapter >= book.chapters} variant="outline">
+              <span className="hidden sm:inline mr-2">Siguiente</span>
+              <ChevronRight className="h-4 w-4" />
+          </Button>
+      </CardFooter>
     </Card>
   )
 }
