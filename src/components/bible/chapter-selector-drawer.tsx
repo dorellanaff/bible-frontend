@@ -14,9 +14,10 @@ interface ChapterSelectorDrawerProps {
   onOpenChange: (isOpen: boolean) => void;
   onChapterSelect: (chapter: number) => void;
   selectedChapter: number | null;
+  onGoBack: () => void;
 }
 
-export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSelect, selectedChapter }: ChapterSelectorDrawerProps) {
+export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSelect, selectedChapter, onGoBack }: ChapterSelectorDrawerProps) {
   const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -27,7 +28,7 @@ export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSel
   }, [isOpen]);
 
   const handleBack = () => {
-    onOpenChange(false);
+    onGoBack();
   }
 
   return (

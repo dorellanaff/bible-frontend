@@ -179,6 +179,13 @@ export default function Home() {
     }
   }
 
+  const handleBackToBooks = () => {
+    setChapterSelectorOpen(false);
+    if (isMobile) {
+      setMobileView('selection');
+    }
+  }
+
   const handleCompare = (verse: SelectedVerse) => {
     setSelectedVerse(verse);
     setCompareOpen(true);
@@ -303,6 +310,7 @@ export default function Home() {
           onOpenChange={setChapterSelectorOpen}
           onChapterSelect={handleChapterSelect}
           selectedChapter={chapter}
+          onGoBack={handleBackToBooks}
         />
       )}
     </div>
