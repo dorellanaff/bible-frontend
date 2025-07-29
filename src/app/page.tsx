@@ -172,7 +172,11 @@ export default function Home() {
   }
 
   const handleBackToSelection = () => {
-    setMobileView('selection');
+    if (isMobile) {
+      setChapterSelectorOpen(true);
+    } else {
+      // Potentially handle desktop back behavior here if needed
+    }
   }
 
   const handleCompare = (verse: SelectedVerse) => {
