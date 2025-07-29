@@ -17,19 +17,26 @@ interface ChapterSelectorDrawerProps {
 
 export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSelect, selectedChapter }: ChapterSelectorDrawerProps) {
   const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen && scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [isOpen]);
 
   return (
     <Drawer open={isOpen} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-h-[80vh]">
+      <DrawerContent className="max-h-[80vh] flex flex-col">
         <DrawerHeader className="text-left flex-shrink-0">
           <DrawerTitle className="font-headline text-2xl">Seleccionar Capítulo</DrawerTitle>
           <DrawerDescription>
             {book.name}
           </DrawerDescription>
         </DrawerHeader>
-        <div className="overflow-y-auto">
-          <ScrollArea>
-            <div className="flex flex-col space-y-2 p-4 pt-0">
+        <div className="overflow-y-auto flex-grow" ref={scrollRef}>
+          <ScrollArea className="h-full">
+            <div className="grid grid-cols-1 gap-2 p-4 pt-0">
               {chapters.map(chapter => (
                 <Button
                   key={chapter}
