@@ -39,7 +39,7 @@ export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack
           </div>
           <div className="w-1/3 text-center">
              <h1 className={cn(
-              "text-2xl sm:text-3xl font-headline font-bold text-foreground truncate",
+              "text-xl sm:text-2xl font-headline font-bold text-foreground truncate",
               { "hidden sm:block": showBack }
             )}>
               Biblia

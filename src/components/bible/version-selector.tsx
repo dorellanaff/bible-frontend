@@ -137,7 +137,7 @@ export function VersionSelector({ versions, selectedVersion, onVersionChange, on
         <PopoverTrigger asChild>
             {triggerButton}
         </PopoverTrigger>
-        <PopoverContent className="w-80 p-0">
+        <PopoverContent className="w-80 p-0" side="bottom" align="start">
             {content}
         </PopoverContent>
     </Popover>
