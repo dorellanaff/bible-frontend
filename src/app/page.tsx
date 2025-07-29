@@ -157,6 +157,8 @@ export default function Home() {
     setChapter(null) // Reset chapter selection
     if (selectedBook) {
       setChapterSelectorOpen(true);
+    } else {
+       window.scrollTo(0, 0);
     }
   }
   

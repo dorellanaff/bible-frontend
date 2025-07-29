@@ -40,12 +40,14 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     onBookSelect(null); // Deseleccionar el libro al cambiar de testamento
-    if (value === 'antiguo' && atScrollRef.current) {
-      atScrollRef.current.scrollTop = 0;
-    }
-    if (value === 'nuevo' && ntScrollRef.current) {
-      ntScrollRef.current.scrollTop = 0;
-    }
+    setTimeout(() => {
+      if (value === 'antiguo' && atScrollRef.current) {
+        atScrollRef.current.scrollTop = 0;
+      }
+      if (value === 'nuevo' && ntScrollRef.current) {
+        ntScrollRef.current.scrollTop = 0;
+      }
+    }, 0);
   };
 
   return (
