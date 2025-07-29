@@ -169,11 +169,16 @@ export default function Home() {
 
     } catch (error) {
         console.error("Failed to fetch chapter content:", error);
+        toast({
+          variant: "destructive",
+          title: "Error de Conexión",
+          description: "No se pudo cargar el capítulo. Por favor, revisa tu conexión a internet o inténtalo de nuevo más tarde.",
+        });
         setChapterContent([]);
     } finally {
         setIsLoading(false);
     }
-  }, [book, chapter, version]);
+  }, [book, chapter, version, toast]);
   
   useEffect(() => {
       fetchChapterContent();
@@ -342,7 +347,7 @@ export default function Home() {
         </div>
       </main>
       
-      {selectedVerse && (
+      {selectedVerse && versions.length > 0 && (
         <>
           <VerseComparisonDialog
             isOpen={isCompareOpen}
