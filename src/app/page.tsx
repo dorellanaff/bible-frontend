@@ -16,6 +16,7 @@ import { API_BASE_URL } from '@/lib/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
+import { LoadingAnimation } from '@/components/bible/loading-animation';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
@@ -61,7 +62,10 @@ export default function Home() {
 
   // Effect to run on client-side mount
   useEffect(() => {
-    setIsClient(true)
+    // Artificial delay to show loading animation
+    const timer = setTimeout(() => {
+      setIsClient(true)
+    }, 1500); 
 
     // Load saved settings from localStorage
     const storedVersion = localStorage.getItem('bible-version');
@@ -91,6 +95,8 @@ export default function Home() {
       setTextSize(size)
       document.documentElement.style.setProperty('--text-size', size.toString())
     }
+
+    return () => clearTimeout(timer);
   }, [books, isMobile])
   
   // Effect to save settings to localStorage
@@ -264,7 +270,7 @@ export default function Home() {
   }
 
   if (!isClient) {
-    return null;
+    return <LoadingAnimation />;
   }
 
   const oldTestamentBooks = books.filter(b => b.testament === 'AT');
@@ -290,7 +296,7 @@ export default function Home() {
         readingProgress={showReadingView ? scrollProgress : 0}
       />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col lg:flex-row lg:items-start gap-8">
+        <div className="flex flex-col lg:flex-row gap-8">
           <aside className={cn(
             "w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-24 lg:self-start",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
@@ -304,7 +310,7 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
             <div className="w-full">
