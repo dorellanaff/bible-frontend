@@ -25,7 +25,7 @@ export interface Book {
   id: number;
   name: string;
   chapters: number;
-  testament: string;
+  testament: "AT" | "NT";
 }
 
 export async function getBibleBooks(): Promise<Book[]> {

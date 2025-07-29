@@ -207,8 +207,8 @@ export default function Home() {
     return null;
   }
 
-  const oldTestamentBooks = books.filter(b => b.testament === 'Antiguo Testamento');
-  const newTestamentBooks = books.filter(b => b.testament === 'Nuevo Testamento');
+  const oldTestamentBooks = books.filter(b => b.testament === 'AT');
+  const newTestamentBooks = books.filter(b => b.testament === 'NT');
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
