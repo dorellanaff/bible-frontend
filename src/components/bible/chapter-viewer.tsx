@@ -2,9 +2,9 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Droplet, Share2, BookCopy, ChevronLeft, ChevronRight } from 'lucide-react'
+import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -140,7 +140,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
   return (
     <Card 
-      className="card-material overflow-hidden relative group"
+      className="card-material overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -170,29 +170,6 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
           )}
         </CardContent>
       </div>
-
-       <Button
-        onClick={onPreviousChapter}
-        disabled={chapter <= 1}
-        variant="outline"
-        size="icon"
-        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        <ChevronLeft className="h-6 w-6" />
-        <span className="sr-only">Capítulo Anterior</span>
-      </Button>
-
-      <Button
-        onClick={onNextChapter}
-        disabled={chapter >= book.chapters}
-        variant="outline"
-        size="icon"
-        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full h-10 w-10 bg-background/50 backdrop-blur-sm hidden md:flex opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        <ChevronRight className="h-6 w-6" />
-        <span className="sr-only">Capítulo Siguiente</span>
-      </Button>
-
     </Card>
   )
 }
