@@ -24,6 +24,8 @@ export const BIBLE_BOOKS_NT: Book[] = [
     { name: 'Filipenses', chapters: 4, abbreviation: 'fil' },
 ];
 
+export const ALL_BIBLE_BOOKS: Book[] = [...BIBLE_BOOKS_OT, ...BIBLE_BOOKS_NT];
+
 export interface VerseData {
     number: number;
     text: string;

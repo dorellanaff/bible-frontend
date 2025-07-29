@@ -1,13 +1,15 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import { BIBLE_VERSIONS, BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, type BibleVersion, type Book, type VerseData } from '@/lib/bible-data'
+import { BIBLE_VERSIONS, BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, type BibleVersion, type Book, type VerseData, ALL_BIBLE_BOOKS } from '@/lib/bible-data'
+import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
 import { VersionSelector } from '@/components/bible/version-selector'
 import { BookSelector } from '@/components/bible/book-selector'
 import { ChapterViewer } from '@/components/bible/chapter-viewer'
 import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialog'
 import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
+import { useToast } from "@/hooks/use-toast"
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; };
 
@@ -25,6 +27,8 @@ export default function Home() {
   const [chapterContent, setChapterContent] = useState<VerseData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { toast } = useToast();
+
   useEffect(() => {
     setIsClient(true)
     const storedTextSize = localStorage.getItem('bible-text-size')
@@ -38,20 +42,29 @@ export default function Home() {
   const fetchChapterContent = useCallback(async () => {
     if (!book || !chapter || !version) return;
     setIsLoading(true);
+
     try {
-        const bookName = book.name.toLowerCase().replace(/ /g, '');
-        // Special mapping for RVR1960 version
-        const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-        const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        if (data.chapter && data.chapter.length > 0) {
-            setChapterContent(data.chapter[0].data);
-        } else {
-            setChapterContent([]);
-        }
+      // 1. Try fetching from IndexedDB first
+      const dbContent = await getChapterFromDb(version, book, chapter);
+      if (dbContent) {
+        setChapterContent(dbContent);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. If not in DB, fetch from API
+      const bookName = book.name.toLowerCase().replace(/ /g, '');
+      const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
+      const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+      
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      
+      const data = await response.json();
+      const content = data.chapter?.[0]?.data || [];
+      setChapterContent(content);
+
     } catch (error) {
         console.error("Failed to fetch chapter content:", error);
         setChapterContent([]);
@@ -85,6 +98,44 @@ export default function Home() {
     setSelectedVerse(verse);
     setConcordanceOpen(true);
   }
+  
+  const handleDownloadVersion = async (versionToDownload: BibleVersion) => {
+    toast({ title: `Iniciando descarga de ${versionToDownload}`, description: "Esto puede tardar unos momentos..." });
+    try {
+      for (const currentBook of ALL_BIBLE_BOOKS) {
+        for (let currentChapter = 1; currentChapter <= currentBook.chapters; currentChapter++) {
+          const existing = await getChapterFromDb(versionToDownload, currentBook, currentChapter);
+          if (existing) continue; // Skip if already downloaded
+
+          const bookName = currentBook.name.toLowerCase().replace(/ /g, '');
+          const apiVersion = versionToDownload === 'RVR1960' ? 'RV1960' : versionToDownload;
+          const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${currentChapter}?version=${apiVersion}`);
+          
+          if(response.ok) {
+            const data = await response.json();
+            const content = data.chapter?.[0]?.data || [];
+            await saveChapterToDb(versionToDownload, currentBook, currentChapter, content);
+          }
+        }
+      }
+      toast({ title: "Descarga Completa", description: `La versión ${versionToDownload} ha sido guardada localmente.` });
+    } catch (error) {
+      console.error("Failed to download version:", error);
+      toast({ variant: "destructive", title: "Error en la Descarga", description: `No se pudo descargar la versión ${versionToDownload}.` });
+    }
+  }
+
+  const handleDeleteVersion = async (versionToDelete: BibleVersion) => {
+    toast({ title: `Eliminando ${versionToDelete} de la memoria local...` });
+    try {
+      await deleteVersionFromDb(versionToDelete);
+      toast({ title: "Versión Eliminada", description: `La versión ${versionToDelete} ha sido eliminada del almacenamiento local.` });
+    } catch (error) {
+      console.error("Failed to delete version:", error);
+      toast({ variant: "destructive", title: "Error al Eliminar", description: `No se pudo eliminar la versión ${versionToDelete}.` });
+    }
+  }
+
 
   if (!isClient) {
     return null;
@@ -100,6 +151,9 @@ export default function Home() {
               versions={BIBLE_VERSIONS}
               selectedVersion={version}
               onVersionChange={setVersion}
+              onDownload={handleDownloadVersion}
+              onDelete={handleDeleteVersion}
+              isVersionDownloaded={isVersionDownloaded}
             />
             <BookSelector
               oldTestamentBooks={BIBLE_BOOKS_OT}
