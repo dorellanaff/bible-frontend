@@ -82,7 +82,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   };
 
   return (
-    <div className="space-y-4 flex flex-col h-full">
+    <div className="space-y-4">
       <Card className="card-material sticky top-0 z-10">
         <CardContent className="p-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
@@ -99,26 +99,24 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
         </CardContent>
       </Card>
       
-      <Card 
-        className="card-material flex-grow overflow-hidden"
+      <div 
+        className="card-material overflow-hidden max-h-[calc(100vh-12rem)]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
-        <CardContent className="p-0 h-full">
-          <div className="h-full">
-              {activeTab === 'antiguo' ? (
-                 <ScrollArea className="h-full p-4" viewportRef={atScrollRef}>
+        <div className="h-full">
+            {activeTab === 'antiguo' ? (
+                <ScrollArea className="h-full p-4" viewportRef={atScrollRef}>
                     <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
-                 </ScrollArea>
-              ): (
+                </ScrollArea>
+            ): (
                 <ScrollArea className="h-full p-4" viewportRef={ntScrollRef}>
                     <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
                 </ScrollArea>
-              )}
-            </div>
-        </CardContent>
-      </Card>
+            )}
+        </div>
+      </div>
     </div>
   )
 }
