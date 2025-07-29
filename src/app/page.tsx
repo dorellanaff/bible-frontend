@@ -15,6 +15,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { API_BASE_URL } from '@/lib/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
@@ -29,6 +30,7 @@ export default function Home() {
   const [selectedVerse, setSelectedVerse] = useState<SelectedVerse | null>(null);
   const [isCompareOpen, setCompareOpen] = useState(false);
   const [isConcordanceOpen, setConcordanceOpen] = useState(false);
+  const [isChapterSelectorOpen, setChapterSelectorOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
   
   const [chapterContent, setChapterContent] = useState<VerseData[]>([]);
@@ -152,13 +154,14 @@ export default function Home() {
     document.documentElement.style.setProperty('--text-size', newSize.toString())
   }
 
-  const handleBookSelect = (book: Book) => {
-    setBook(book)
-    setChapter(1) // Reset to chapter 1 when a new book is selected
+  const handleBookSelect = (selectedBook: Book) => {
+    setBook(selectedBook)
+    setChapterSelectorOpen(true);
   }
   
   const handleChapterSelect = (selectedChapter: number) => {
     setChapter(selectedChapter)
+    setChapterSelectorOpen(false);
     if (isMobile) {
       setMobileView('reading');
       window.scrollTo(0, 0);
@@ -240,8 +243,6 @@ export default function Home() {
               newTestamentBooks={newTestamentBooks}
               selectedBook={book}
               onBookSelect={handleBookSelect}
-              selectedChapter={chapter}
-              onChapterSelect={handleChapterSelect}
             />
           </aside>
           
@@ -263,7 +264,7 @@ export default function Home() {
                 <Card className="card-material flex items-center justify-center h-96">
                     <CardContent className="text-center text-muted-foreground p-6">
                         <h3 className="text-2xl font-headline">Bienvenido a Biblia</h3>
-                        <p className="mt-2">Por favor, selecciona un libro y capítulo para comenzar a leer.</p>
+                        <p className="mt-2">Por favor, selecciona un libro para comenzar a leer.</p>
                     </CardContent>
                 </Card>
             )}
@@ -286,6 +287,16 @@ export default function Home() {
             verseInfo={selectedVerse}
           />
         </>
+      )}
+
+      {book && (
+        <ChapterSelectorDrawer
+          book={book}
+          isOpen={isChapterSelectorOpen}
+          onOpenChange={setChapterSelectorOpen}
+          onChapterSelect={handleChapterSelect}
+          selectedChapter={chapter}
+        />
       )}
     </div>
   )
