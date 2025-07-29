@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Book, VerseData, BibleVersion } from '@/lib/bible-data'
 import { getBibleVersions, getBibleBooks } from '@/lib/bible-data'
 import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
@@ -38,6 +38,9 @@ export default function Home() {
   
   const [mobileView, setMobileView] = useState<'selection' | 'reading'>('selection');
   const isMobile = useIsMobile();
+  
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const chapterViewerRef = useRef<HTMLDivElement>(null);
 
 
   const { toast } = useToast();
@@ -102,6 +105,35 @@ export default function Home() {
       }
     }
   }, [version, book, chapter, isClient]);
+  
+  // Effect for scroll progress
+  useEffect(() => {
+    const handleScroll = () => {
+        const contentElement = chapterViewerRef.current;
+        if (!contentElement) return;
+
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        
+        // Use documentElement for overall page scroll
+        const totalScrollableHeight = scrollHeight - clientHeight;
+        
+        if (totalScrollableHeight > 0) {
+            const currentProgress = (scrollTop / totalScrollableHeight) * 100;
+            setScrollProgress(currentProgress);
+        } else {
+            setScrollProgress(0);
+        }
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    
+    // Recalculate on chapter change
+    handleScroll();
+
+    return () => {
+        window.removeEventListener('scroll', handleScroll);
+    };
+  }, [chapterContent]);
 
   const fetchChapterContent = useCallback(async () => {
     if (!book || !chapter || !version) return;
@@ -186,8 +218,6 @@ export default function Home() {
   const handleBackToSelection = () => {
     if (isMobile) {
       setChapterSelectorOpen(true);
-    } else {
-      // Potentially handle desktop back behavior here if needed
     }
   }
 
@@ -257,11 +287,12 @@ export default function Home() {
         onDownload={handleDownloadVersion}
         onDelete={handleDeleteVersion}
         isVersionDownloaded={isVersionDownloaded}
+        readingProgress={showReadingView ? scrollProgress : 0}
       />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4 h-[calc(100vh-120px)]",
+            "w-full lg:w-1/3 xl:w-1/4",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
@@ -277,17 +308,19 @@ export default function Home() {
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
             {showReadingView ? (
-              <ChapterViewer
-                book={book}
-                chapter={chapter}
-                version={version}
-                content={chapterContent}
-                isLoading={isLoading}
-                onCompareVerse={handleCompare}
-                onConcordance={handleConcordance}
-                onNextChapter={handleNextChapter}
-                onPreviousChapter={handlePreviousChapter}
-              />
+              <div ref={chapterViewerRef}>
+                <ChapterViewer
+                  book={book}
+                  chapter={chapter}
+                  version={version}
+                  content={chapterContent}
+                  isLoading={isLoading}
+                  onCompareVerse={handleCompare}
+                  onConcordance={handleConcordance}
+                  onNextChapter={handleNextChapter}
+                  onPreviousChapter={handlePreviousChapter}
+                />
+              </div>
             ) : (
                 <Card className="card-material flex items-center justify-center h-96">
                     <CardContent className="text-center text-muted-foreground p-6">
