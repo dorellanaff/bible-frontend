@@ -59,7 +59,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
           }
           
           // If not in DB, fetch from API
-          const bookName = book.toLowerCase().replace(/ /g, '');
+          const bookName = bookObject.name.toLowerCase().replace(/ /g, '');
           const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
           const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
           if (!response.ok) return { version: version.abbreviation, text: null };
