@@ -29,7 +29,7 @@ export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack
           </div>
           <div className="w-1/3 text-center">
              <h1 className={cn(
-              "text-3xl md:text-4xl font-headline font-bold text-foreground",
+              "text-2xl sm:text-3xl md:text-4xl font-headline font-bold text-foreground",
               { "hidden sm:block": showBack }
             )}>
               Biblia Viva

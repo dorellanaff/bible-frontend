@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Minus, Plus, Text } from 'lucide-react'
@@ -19,7 +20,7 @@ export function TextSizeAdjuster({ value, onChange }: TextSizeAdjusterProps) {
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Adjust text size">
-          <Text className="h-5 w-5" />
+          <Text className="h-6 w-6" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56" align="end">
