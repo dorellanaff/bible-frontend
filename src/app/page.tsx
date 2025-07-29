@@ -161,6 +161,7 @@ export default function Home() {
     setChapter(selectedChapter)
     if (isMobile) {
       setMobileView('reading');
+      window.scrollTo(0, 0);
     }
   }
 
