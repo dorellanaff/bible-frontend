@@ -127,7 +127,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
                 </div>
             ) : (
                 <div className="flex items-center justify-center h-40 text-center text-muted-foreground">
-                    <p>Debe seleccionar al menos una versión para comparar.</p>
+                    <p>Debe seleccionar 2 o más versiones para comparar.</p>
                 </div>
             )}
         </ScrollArea>
