@@ -5,7 +5,7 @@ import * as React from 'react'
 import type { Book } from '@/lib/bible-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface BookSelectorProps {
@@ -58,7 +58,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
             <TabsTrigger value="nuevo" className="font-headline">Nuevo Testamento</TabsTrigger>
           </TabsList>
           
-          <div className="flex-grow mt-4 overflow-y-auto">
+          <div className="flex-grow mt-4 overflow-hidden">
              <TabsContent value="antiguo" className="m-0 h-full">
                 <ScrollArea className="h-full" viewportRef={atScrollRef}>
                   <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
