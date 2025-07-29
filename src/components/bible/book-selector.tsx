@@ -17,15 +17,15 @@ interface BookSelectorProps {
   onChapterSelect: (chapter: number) => void;
 }
 
-function BookGrid({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book) => void }) {
+function BookList({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book) => void }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-2">
+    <div className="flex flex-col space-y-2">
       {books.map(book => (
         <Button
           key={book.name}
           variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
           onClick={() => onBookSelect(book)}
-          className="font-headline justify-start"
+          className="font-headline justify-start text-base py-3 h-auto"
         >
           {book.name}
         </Button>
@@ -34,21 +34,21 @@ function BookGrid({ books, selectedBook, onBookSelect }: { books: Book[], select
   )
 }
 
-function ChapterGrid({ book, selectedChapter, onChapterSelect }: { book: Book, selectedChapter: number | null, onChapterSelect: (chapter: number) => void }) {
+function ChapterList({ book, selectedChapter, onChapterSelect }: { book: Book, selectedChapter: number | null, onChapterSelect: (chapter: number) => void }) {
   const chapters = Array.from({ length: book.chapters }, (_, i) => i + 1);
   return (
     <div className="mt-4">
-      <h4 className="font-headline text-lg mb-2">{book.name} - Capítulos</h4>
-      <ScrollArea className="h-48">
-        <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-5 lg:grid-cols-6 gap-2 pr-4">
+      <h4 className="font-headline text-lg mb-2 text-center">{book.name}</h4>
+       <ScrollArea className="h-48">
+        <div className="flex flex-col space-y-2 pr-4">
           {chapters.map(chapter => (
             <Button
               key={chapter}
               variant={selectedChapter === chapter ? 'default' : 'outline'}
-              size="icon"
               onClick={() => onChapterSelect(chapter)}
+              className="w-full justify-center text-base py-3 h-auto"
             >
-              {chapter}
+              Capítulo {chapter}
             </Button>
           ))}
         </div>
@@ -59,13 +59,31 @@ function ChapterGrid({ book, selectedChapter, onChapterSelect }: { book: Book, s
 
 export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBook, onBookSelect, selectedChapter, onChapterSelect }: BookSelectorProps) {
   const chapterGridRef = React.useRef<HTMLDivElement>(null);
+  const [activeTab, setActiveTab] = React.useState<'books' | 'chapters'>('books');
 
   const handleBookSelect = (book: Book) => {
     onBookSelect(book);
+    setActiveTab('chapters');
     setTimeout(() => {
         chapterGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
   }
+  
+  const handleChapterSelect = (chapter: number) => {
+    onChapterSelect(chapter)
+    // Optional: switch back to book view on mobile after selection
+    // if (window.innerWidth < 1024) {
+    //    setActiveTab('books');
+    // }
+  }
+
+  React.useEffect(() => {
+    if (selectedBook) {
+      setActiveTab('chapters');
+    } else {
+      setActiveTab('books');
+    }
+  }, [selectedBook]);
 
   return (
     <Card className="card-material">
@@ -73,22 +91,30 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
         <CardTitle className="font-headline text-2xl">Libro y Capítulo</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="antiguo" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="antiguo" className="font-headline">Antiguo Testamento</TabsTrigger>
-            <TabsTrigger value="nuevo" className="font-headline">Nuevo Testamento</TabsTrigger>
-          </TabsList>
-          <TabsContent value="antiguo" className="mt-4">
-            <BookGrid books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={handleBookSelect} />
-          </TabsContent>
-          <TabsContent value="nuevo" className="mt-4">
-            <BookGrid books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={handleBookSelect} />
-          </TabsContent>
-        </Tabs>
-        {selectedBook && (
-            <div ref={chapterGridRef} className="mt-4 border-t pt-4">
-              <ChapterGrid book={selectedBook} selectedChapter={selectedChapter} onChapterSelect={onChapterSelect} />
-            </div>
+        {selectedBook && activeTab === 'chapters' ? (
+           <div ref={chapterGridRef}>
+            <Button onClick={() => setActiveTab('books')} variant="outline" className="mb-4 w-full">
+              ← Cambiar Libro
+            </Button>
+            <ChapterList book={selectedBook} selectedChapter={selectedChapter} onChapterSelect={handleChapterSelect} />
+           </div>
+        ) : (
+          <Tabs defaultValue="antiguo" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="antiguo" className="font-headline">Antiguo Testamento</TabsTrigger>
+              <TabsTrigger value="nuevo" className="font-headline">Nuevo Testamento</TabsTrigger>
+            </TabsList>
+            <TabsContent value="antiguo" className="mt-4">
+               <ScrollArea className="h-72">
+                  <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={handleBookSelect} />
+               </ScrollArea>
+            </TabsContent>
+            <TabsContent value="nuevo" className="mt-4">
+              <ScrollArea className="h-72">
+                <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={handleBookSelect} />
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
         )}
       </CardContent>
     </Card>
