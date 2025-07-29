@@ -97,7 +97,7 @@ export default function Home() {
       if (book) {
         localStorage.setItem('bible-book', book.name);
       }
-      if (chapter) {
+      if (chapter !== null) {
         localStorage.setItem('bible-chapter', chapter.toString());
       }
     }
@@ -227,7 +227,7 @@ export default function Home() {
   const newTestamentBooks = books.filter(b => b.testament === 'NT');
   
   const showReadingView = book && chapter;
-  const showSelectionView = !isMobile || (isMobile && mobileView === 'selection');
+  const showMobileSelectionView = isMobile && mobileView === 'selection';
   const showMobileReadingView = isMobile && mobileView === 'reading';
 
   return (
@@ -248,7 +248,7 @@ export default function Home() {
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className={cn(
             "w-full lg:w-1/3 xl:w-1/4 space-y-6 lg:sticky lg:top-8 self-start",
-            { 'hidden lg:block': showMobileReadingView, 'block': showSelectionView }
+            { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
               oldTestamentBooks={oldTestamentBooks}
@@ -262,7 +262,7 @@ export default function Home() {
           
           <section className={cn(
             "w-full lg:w-2/3 xl:w-3/4",
-            { 'hidden lg:block': isMobile && mobileView === 'selection', 'block': !isMobile || showMobileReadingView }
+            { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
             {showReadingView ? (
               <ChapterViewer
