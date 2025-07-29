@@ -2,6 +2,7 @@
 "use client"
 
 import type * as React from 'react'
+import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { TextSizeAdjuster } from './text-size-adjuster'
 import { VersionSelector } from './version-selector'
@@ -41,12 +42,14 @@ export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack
              <VersionSelector {...versionProps} />
           </div>
           <div className="w-1/3 text-center">
-             <h1 className={cn(
-              "text-xl sm:text-2xl font-headline font-bold text-foreground truncate",
-              { "hidden sm:block": showBack }
-            )}>
-              Biblia
-            </h1>
+             <Link href="/" className="cursor-pointer">
+              <h1 className={cn(
+                "text-xl sm:text-2xl font-headline font-bold text-foreground truncate",
+                { "hidden sm:block": showBack }
+              )}>
+                Biblia
+              </h1>
+             </Link>
           </div>
           <div className="w-1/3 flex justify-end items-center gap-2">
             <TextSizeAdjuster value={textSize} onChange={onTextSizeChange} />
