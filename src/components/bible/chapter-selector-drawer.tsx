@@ -41,9 +41,9 @@ export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSel
               <span className="sr-only">Volver</span>
             </Button>
             <div>
-              <DrawerTitle className="font-headline text-2xl">Seleccionar Capítulo</DrawerTitle>
+              <DrawerTitle className="font-headline text-2xl">{book.name}</DrawerTitle>
               <DrawerDescription>
-                {book.name}
+                Selecciona un capítulo
               </DrawerDescription>
             </div>
           </div>
