@@ -1,6 +1,7 @@
 
 "use client"
 
+import * as React from 'react'
 import type { Book } from '@/lib/bible-data'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -57,6 +58,15 @@ function ChapterGrid({ book, selectedChapter, onChapterSelect }: { book: Book, s
 }
 
 export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBook, onBookSelect, selectedChapter, onChapterSelect }: BookSelectorProps) {
+  const chapterGridRef = React.useRef<HTMLDivElement>(null);
+
+  const handleBookSelect = (book: Book) => {
+    onBookSelect(book);
+    setTimeout(() => {
+        chapterGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
   return (
     <Card className="bg-card shadow-lg">
       <CardHeader>
@@ -69,15 +79,15 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
             <TabsTrigger value="nuevo" className="font-headline">Nuevo Testamento</TabsTrigger>
           </TabsList>
           <TabsContent value="antiguo" className="mt-4">
-            <BookGrid books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+            <BookGrid books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={handleBookSelect} />
           </TabsContent>
           <TabsContent value="nuevo" className="mt-4">
-            <BookGrid books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+            <BookGrid books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={handleBookSelect} />
           </TabsContent>
         </Tabs>
         {selectedBook && (
-            <div className="mt-4 border-t pt-4">
-            <ChapterGrid book={selectedBook} selectedChapter={selectedChapter} onChapterSelect={onChapterSelect} />
+            <div ref={chapterGridRef} className="mt-4 border-t pt-4">
+              <ChapterGrid book={selectedBook} selectedChapter={selectedChapter} onChapterSelect={onChapterSelect} />
             </div>
         )}
       </CardContent>
