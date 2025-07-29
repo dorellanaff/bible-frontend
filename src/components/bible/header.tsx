@@ -42,7 +42,7 @@ export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack
               "text-2xl sm:text-3xl font-headline font-bold text-foreground truncate",
               { "hidden sm:block": showBack }
             )}>
-              Biblia Viva
+              Biblia
             </h1>
           </div>
           <div className="w-1/3 flex justify-end">

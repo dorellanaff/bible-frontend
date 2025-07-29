@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'Biblia Viva',
+  title: 'Biblia',
   description: 'An elegant and modern Bible reader.',
 };
 
