@@ -26,66 +26,73 @@ interface VerseComparisonDialogProps {
 interface VerseComparison {
     version: string;
     text: string | null;
+    loading: boolean;
 }
 
 export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, versions, books }: VerseComparisonDialogProps) {
   const { book, chapter, verse, text, version: currentVersion } = verseInfo;
   const [comparisons, setComparisons] = useState<VerseComparison[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
+  
   useEffect(() => {
-    async function fetchAllVersions() {
-      if (!isOpen || versions.length === 0 || !books.length) return;
-      setIsLoading(true);
-
-      const bookObject = books.find(b => b.name === book);
-      if (!bookObject) {
-          setIsLoading(false);
-          setComparisons([]);
-          return;
-      }
-      
-      const fetchPromises = versions.map(async (version) => {
-        try {
-          if (version.abbreviation === currentVersion) {
-            return { version: version.abbreviation, text: text };
-          }
-
-          const localData = await getChapterFromDb(version.abbreviation, bookObject, chapter);
-          if (localData) {
-            const verseData = localData.find(v => v.number === verse && v.type === 'verse');
-            return { version: version.abbreviation, text: verseData?.text || "No encontrado en BD." };
-          }
-          
-          const bookName = bookObject.name.toLowerCase().replace(/ /g, '');
-          const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
-          const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
-          
-          if (!response.ok) {
-            console.warn(`API request failed for ${version.abbreviation}: ${response.statusText}`);
-            return { version: version.abbreviation, text: null };
-          }
-          
-          const data = await response.json();
-          const verses = data.chapter?.[0]?.data;
-          if (!verses) {
-            return { version: version.abbreviation, text: "Estructura de API inesperada." };
-          }
-          
-          const verseDataFromApi = verses.find((v: any) => v.number === verse && v.type === 'verse');
-          return { version: version.abbreviation, text: verseDataFromApi?.text || "No encontrado en API." };
-        } catch (e) {
-          console.error(`Error fetching verse for ${version.abbreviation}:`, e);
-          return { version: version.abbreviation, text: null };
-        }
-      });
-      
-      const results = await Promise.all(fetchPromises);
-      setComparisons(results);
-      setIsLoading(false);
+    if (!isOpen) {
+        setComparisons([]); // Reset on close
+        return;
     }
     
-    fetchAllVersions();
+    if (versions.length === 0 || !books.length) return;
+
+    // Set initial loading state for all versions
+    const initialComparisons = versions.map(v => ({
+      version: v.abbreviation,
+      text: v.abbreviation === currentVersion ? text : null,
+      loading: v.abbreviation !== currentVersion,
+    }));
+    setComparisons(initialComparisons);
+    
+    const bookObject = books.find(b => b.name === book);
+    if (!bookObject) {
+        setComparisons(prev => prev.map(c => ({...c, loading: false})));
+        return;
+    }
+
+    versions.forEach(async (version) => {
+      if (version.abbreviation === currentVersion) return;
+
+      let verseText: string | null = null;
+      try {
+        const localData = await getChapterFromDb(version.abbreviation, bookObject, chapter);
+        if (localData) {
+          const verseData = localData.find(v => v.number === verse && v.type === 'verse');
+          verseText = verseData?.text || "No encontrado en BD.";
+        } else {
+            const bookName = bookObject.name.toLowerCase().replace(/ /g, '');
+            const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
+            const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+            
+            if (response.ok) {
+              const data = await response.json();
+              const verses = data.chapter?.[0]?.data;
+              if (verses) {
+                const verseDataFromApi = verses.find((v: any) => v.number === verse && v.type === 'verse');
+                verseText = verseDataFromApi?.text || "No encontrado en API.";
+              } else {
+                 verseText = "Estructura de API inesperada.";
+              }
+            } else {
+                verseText = `Error de red: ${response.statusText}`;
+            }
+        }
+      } catch (e) {
+          console.error(`Error fetching verse for ${version.abbreviation}:`, e);
+          verseText = "Error al obtener el versículo.";
+      }
+
+      setComparisons(prev => 
+        prev.map(c => 
+          c.version === version.abbreviation ? { ...c, text: verseText, loading: false } : c
+        )
+      );
+    });
   }, [isOpen, book, chapter, verse, versions, currentVersion, text, books]);
 
   return (
@@ -99,22 +106,19 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">
-            {isLoading && versions.length > 0 ? (
-                versions.map(version => (
-                    <div key={version.abbreviation} className="p-4 rounded-lg bg-secondary/50 space-y-2">
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
-                    </div>
-                ))
-            ) : (
-                comparisons.map(item => (
+                {comparisons.map(item => (
                     <div key={item.version} className="p-4 rounded-lg bg-secondary/50">
                         <h4 className="font-bold text-lg font-headline text-primary">{item.version}</h4>
-                        <p className="mt-1 text-readable">{item.text || "Versículo no disponible en esta versión."}</p>
+                        {item.loading ? (
+                          <div className="space-y-2 mt-1">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-3/4" />
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-readable">{item.text || "Versículo no disponible en esta versión."}</p>
+                        )}
                     </div>
-                ))
-            )}
+                ))}
             </div>
         </ScrollArea>
       </DialogContent>
