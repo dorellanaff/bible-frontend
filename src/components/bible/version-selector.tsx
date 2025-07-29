@@ -3,10 +3,12 @@
 
 import * as React from 'react'
 import type { BibleVersion } from '@/lib/bible-data'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Download, Trash2, CheckCircle, Loader } from 'lucide-react'
+import { Download, Trash2, CheckCircle, Loader, ChevronsUpDown } from 'lucide-react'
+import { useIsMobile } from '@/hooks/use-mobile'
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ScrollArea } from '../ui/scroll-area'
 
 interface VersionSelectorProps {
   versions: BibleVersion[];
@@ -17,8 +19,35 @@ interface VersionSelectorProps {
   isVersionDownloaded: (version: string, markAsDownloading?: boolean) => Promise<boolean>;
 }
 
+function VersionList({ versions, onVersionChange, getButtonState }: {
+    versions: BibleVersion[];
+    onVersionChange: (version: string) => void;
+    getButtonState: (abbr: string) => React.ReactNode;
+}) {
+    return (
+        <div className="flex flex-col gap-1 p-2">
+            {versions.map(version => (
+              <div key={version.id} className="flex items-center justify-between">
+                 <Button
+                    variant="ghost"
+                    className="w-full justify-start text-base h-auto py-3"
+                    onClick={() => onVersionChange(version.abbreviation)}
+                >
+                    {version.name} ({version.abbreviation})
+                </Button>
+                <div className="ml-2 pr-2">
+                    {getButtonState(version.abbreviation)}
+                </div>
+              </div>
+            ))}
+        </div>
+    );
+}
+
 export function VersionSelector({ versions, selectedVersion, onVersionChange, onDownload, onDelete, isVersionDownloaded }: VersionSelectorProps) {
   const [downloadStatus, setDownloadStatus] = React.useState<Record<string, 'downloaded' | 'not-downloaded' | 'downloading'>>({});
+  const [isOpen, setOpen] = React.useState(false);
+  const isMobile = useIsMobile();
 
   React.useEffect(() => {
     const checkStatus = async () => {
@@ -70,31 +99,47 @@ export function VersionSelector({ versions, selectedVersion, onVersionChange, on
         </Button>
     )
   }
+  
+  const handleVersionSelect = (version: string) => {
+      onVersionChange(version);
+      setOpen(false);
+  }
+
+  const triggerButton = (
+    <Button variant="ghost" className="text-base sm:text-lg font-bold gap-2 pl-1 pr-2">
+        {selectedVersion}
+        <ChevronsUpDown className="h-4 w-4 opacity-50" />
+    </Button>
+  );
+
+  const content = <VersionList versions={versions} onVersionChange={handleVersionSelect} getButtonState={getButtonState} />;
+
+  if (isMobile) {
+    return (
+      <Drawer open={isOpen} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>
+            {triggerButton}
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="font-headline text-2xl">Seleccionar Versión</DrawerTitle>
+          </DrawerHeader>
+          <ScrollArea className="max-h-[70vh]">
+            {content}
+          </ScrollArea>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
-    <Card className="card-material">
-      <CardHeader>
-        <CardTitle className="font-headline text-2xl">Versión</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Select value={selectedVersion} onValueChange={onVersionChange}>
-          <SelectTrigger className="w-full text-base py-3 h-auto">
-            <SelectValue placeholder="Selecciona una versión" />
-          </SelectTrigger>
-          <SelectContent>
-            {versions.map(version => (
-              <div key={version.id} className="flex items-center justify-between pr-2">
-                <SelectItem value={version.abbreviation} className="text-base flex-grow">
-                  {version.name} ({version.abbreviation})
-                </SelectItem>
-                <div className="ml-2">
-                    {getButtonState(version.abbreviation)}
-                </div>
-              </div>
-            ))}
-          </SelectContent>
-        </Select>
-      </CardContent>
-    </Card>
+    <Popover open={isOpen} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+            {triggerButton}
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-0">
+            {content}
+        </PopoverContent>
+    </Popover>
   )
 }

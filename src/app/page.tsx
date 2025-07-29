@@ -6,7 +6,6 @@ import type { Book, type VerseData, type BibleVersion } from '@/lib/bible-data'
 import { getBibleVersions, getBibleBooks } from '@/lib/bible-data'
 import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
-import { VersionSelector } from '@/components/bible/version-selector'
 import { BookSelector } from '@/components/bible/book-selector'
 import { ChapterViewer } from '@/components/bible/chapter-viewer'
 import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialog'
@@ -238,6 +237,12 @@ export default function Home() {
         onTextSizeChange={handleTextSizeChange} 
         showBack={showMobileReadingView}
         onBack={handleBackToSelection}
+        versions={versions}
+        selectedVersion={version}
+        onVersionChange={setVersion}
+        onDownload={handleDownloadVersion}
+        onDelete={handleDeleteVersion}
+        isVersionDownloaded={isVersionDownloaded}
       />
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
@@ -245,14 +250,6 @@ export default function Home() {
             "w-full lg:w-1/3 xl:w-1/4 space-y-6 lg:sticky lg:top-8 self-start",
             { 'hidden lg:block': showMobileReadingView, 'block': showSelectionView }
           )}>
-            <VersionSelector
-              versions={versions}
-              selectedVersion={version}
-              onVersionChange={setVersion}
-              onDownload={handleDownloadVersion}
-              onDelete={handleDeleteVersion}
-              isVersionDownloaded={isVersionDownloaded}
-            />
             <BookSelector
               oldTestamentBooks={oldTestamentBooks}
               newTestamentBooks={newTestamentBooks}
