@@ -37,15 +37,46 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   const atScrollRef = React.useRef<HTMLDivElement>(null);
   const ntScrollRef = React.useRef<HTMLDivElement>(null);
 
+  const [touchStart, setTouchStart] = React.useState(0);
+  const [touchEnd, setTouchEnd] = React.useState(0);
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(0); // Reset touch end
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Swipe Left -> New Testament
+      if (activeTab === 'antiguo') {
+        handleTabChange('nuevo');
+      }
+    } else if (isRightSwipe) {
+      // Swipe Right -> Old Testament
+      if (activeTab === 'nuevo') {
+        handleTabChange('antiguo');
+      }
+    }
+  };
+
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    onBookSelect(null); // Deseleccionar el libro al cambiar de testamento
+    onBookSelect(null);
     setTimeout(() => {
-      if (value === 'antiguo' && atScrollRef.current) {
-        atScrollRef.current.scrollTop = 0;
-      }
-      if (value === 'nuevo' && ntScrollRef.current) {
-        ntScrollRef.current.scrollTop = 0;
+      const scrollRef = value === 'antiguo' ? atScrollRef : ntScrollRef;
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = 0;
       }
     }, 0);
   };
@@ -61,16 +92,19 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
             </TabsList>
             
             <TabsContent value="antiguo" className="mt-0">
-              {/* This content is visually replaced by the card below but required for Tabs to work */}
             </TabsContent>
             <TabsContent value="nuevo" className="mt-0">
-              {/* This content is visually replaced by the card below but required for Tabs to work */}
             </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
       
-      <Card className="card-material flex-grow overflow-hidden">
+      <Card 
+        className="card-material flex-grow overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <CardContent className="p-0 h-full">
           <div className="h-full">
               {activeTab === 'antiguo' ? (
