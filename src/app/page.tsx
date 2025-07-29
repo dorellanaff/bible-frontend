@@ -11,6 +11,7 @@ import { ChapterViewer } from '@/components/bible/chapter-viewer'
 import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialog'
 import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 import { useToast } from "@/hooks/use-toast"
+import { Card, CardContent } from '@/components/ui/card';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: BibleVersion; };
 
