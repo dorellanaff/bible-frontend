@@ -102,6 +102,17 @@ body {
 }
 
 /* Book Loading Animation */
+.book-loading-container {
+  position: fixed;
+  inset: 0;
+  background-color: hsl(var(--background));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
 .book {
 	--book-bg: hsl(var(--secondary));
 	--book-pg-color: hsl(var(--card));
