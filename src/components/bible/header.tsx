@@ -8,6 +8,7 @@ import { VersionSelector } from './version-selector'
 import { Button } from '../ui/button'
 import { cn } from '@/lib/utils'
 import type { BibleVersion } from '@/lib/bible-data'
+import { ThemeToggle } from '../theme-toggle'
 
 
 interface AppHeaderProps {
@@ -25,7 +26,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack, ...versionProps }: AppHeaderProps) {
   return (
-    <header className="bg-card shadow-md sticky top-0 z-40">
+    <header className="bg-card shadow-md sticky top-0 z-40 border-b">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="w-1/3 flex items-center gap-2">
@@ -45,8 +46,9 @@ export function AppHeader({ textSize, onTextSizeChange, showBack = false, onBack
               Biblia
             </h1>
           </div>
-          <div className="w-1/3 flex justify-end">
+          <div className="w-1/3 flex justify-end items-center gap-2">
             <TextSizeAdjuster value={textSize} onChange={onTextSizeChange} />
+            <ThemeToggle />
           </div>
         </div>
       </div>
