@@ -306,7 +306,7 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4 flex-grow flex flex-row items-center",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
 
