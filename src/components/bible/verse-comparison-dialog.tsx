@@ -1,6 +1,7 @@
 "use client"
 
-import { BIBLE_VERSIONS } from '@/lib/bible-data'
+import { BIBLE_VERSIONS, ALL_BIBLE_BOOKS } from '@/lib/bible-data'
+import { getChapterFromDb } from '@/lib/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useEffect, useState } from 'react'
@@ -31,17 +32,32 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo }: Verse
     async function fetchAllVersions() {
       if (!isOpen) return;
       setIsLoading(true);
+
+      const bookObject = ALL_BIBLE_BOOKS.find(b => b.name === book);
+      if (!bookObject) {
+          setIsLoading(false);
+          setComparisons([]);
+          return;
+      }
       
       const fetchPromises = BIBLE_VERSIONS.map(async (version) => {
         try {
+          // 1. Try to get from DB first
+          const localData = await getChapterFromDb(version, bookObject, chapter);
+          if (localData) {
+            const verseData = localData.find(v => v.number === verse && v.type === 'verse');
+            return { version, text: verseData?.text || null };
+          }
+          
+          // 2. If not in DB, fetch from API
           const bookName = book.toLowerCase().replace(/ /g, '');
           const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
           const response = await fetch(`https://bible-daniel.ddns.net/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
           if (!response.ok) return { version, text: null };
           
           const data = await response.json();
-          const verseData = data.chapter?.[0]?.data.find((v: any) => v.number === verse && v.type === 'verse');
-          return { version, text: verseData?.text || null };
+          const verseDataFromApi = data.chapter?.[0]?.data.find((v: any) => v.number === verse && v.type === 'verse');
+          return { version, text: verseDataFromApi?.text || null };
         } catch (e) {
           return { version, text: null };
         }
