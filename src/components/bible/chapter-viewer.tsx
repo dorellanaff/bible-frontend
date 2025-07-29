@@ -115,7 +115,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <div className="flex flex-col text-sm">
-              <Button variant="ghost" className="justify-start p-2" onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text}`)}>
+              <Button variant="ghost" className="justify-start p-2" onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text} (${version})`)}>
                 <Copy className="mr-2 h-4 w-4" /> Copiar
               </Button>
               <Separator />
