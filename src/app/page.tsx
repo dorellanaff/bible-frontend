@@ -167,9 +167,21 @@ export default function Home() {
     setChapterSelectorOpen(false);
     if (isMobile) {
       setMobileView('reading');
-      window.scrollTo(0, 0);
     }
+    window.scrollTo(0, 0);
   }
+
+  const handleNextChapter = () => {
+    if (book && chapter && chapter < book.chapters) {
+      handleChapterSelect(chapter + 1);
+    }
+  };
+
+  const handlePreviousChapter = () => {
+    if (book && chapter && chapter > 1) {
+      handleChapterSelect(chapter - 1);
+    }
+  };
 
   const handleBackToSelection = () => {
     if (isMobile) {
@@ -273,6 +285,8 @@ export default function Home() {
                 isLoading={isLoading}
                 onCompareVerse={handleCompare}
                 onConcordance={handleConcordance}
+                onNextChapter={handleNextChapter}
+                onPreviousChapter={handlePreviousChapter}
               />
             ) : (
                 <Card className="card-material flex items-center justify-center h-96">

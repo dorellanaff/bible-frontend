@@ -21,10 +21,37 @@ interface ChapterViewerProps {
   isLoading: boolean;
   onCompareVerse: (verse: SelectedVerse) => void;
   onConcordance: (verse: SelectedVerse) => void;
+  onNextChapter: () => void;
+  onPreviousChapter: () => void;
 }
 
-export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance }: ChapterViewerProps) {
+export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter }: ChapterViewerProps) {
   const { toast } = useToast()
+  const [touchStart, setTouchStart] = React.useState(0);
+  const [touchEnd, setTouchEnd] = React.useState(0);
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(0);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      onNextChapter();
+    } else if (isRightSwipe) {
+      onPreviousChapter();
+    }
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -83,7 +110,12 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
   }
 
   return (
-    <Card className="card-material">
+    <Card 
+      className="card-material"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       <CardHeader>
         <CardTitle className="font-headline text-3xl md:text-4xl">{book.name} {chapter}</CardTitle>
       </CardHeader>
