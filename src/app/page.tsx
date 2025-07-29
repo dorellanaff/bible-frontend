@@ -152,8 +152,8 @@ export default function Home() {
     document.documentElement.style.setProperty('--text-size', newSize.toString())
   }
 
-  const handleBookSelect = (selectedBook: Book) => {
-    setBook(selectedBook)
+  const handleBookSelect = (book: Book) => {
+    setBook(book)
     setChapter(1) // Reset to chapter 1 when a new book is selected
   }
   
@@ -180,31 +180,16 @@ export default function Home() {
   }
   
   const handleDownloadVersion = async (versionToDownload: string) => {
-    toast({ title: `Iniciando descarga de ${versionToDownload}`, description: "Esto puede tardar unos momentos..." });
+    toast({ title: `Versión ${versionToDownload} marcada para uso sin conexión.` });
     try {
-      await isVersionDownloaded(versionToDownload, true); // Mark as downloading
-
-      for (const currentBook of books) {
-        for (let currentChapter = 1; currentChapter <= currentBook.chapters; currentChapter++) {
-          const existing = await getChapterFromDb(versionToDownload, currentBook, currentChapter);
-          if (existing) continue;
-
-          const bookName = currentBook.name.toLowerCase().replace(/ /g, '');
-          const apiVersion = versionToDownload === 'RVR1960' ? 'RV1960' : versionToDownload;
-          const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${currentChapter}?version=${apiVersion}`);
-          
-          if(response.ok) {
-            const data = await response.json();
-            const content = data.chapter?.[0]?.data || [];
-            await saveChapterToDb(versionToDownload, currentBook, currentChapter, content);
-          }
-        }
+      await isVersionDownloaded(versionToDownload, true); // Mark as ready for downloading
+      // Re-fetch current chapter to save it if it's from the version we just marked.
+      if (versionToDownload === version && chapterContent.length > 0 && book && chapter) {
+         await saveChapterToDb(version, book, chapter, chapterContent);
       }
-      toast({ title: "Descarga Completa", description: `La versión ${versionToDownload} ha sido guardada localmente.` });
     } catch (error) {
-      console.error("Failed to download version:", error);
-      toast({ variant: "destructive", title: "Error en la Descarga", description: `No se pudo descargar la versión ${versionToDownload}.` });
-      await isVersionDownloaded(versionToDownload, false); // Unmark on failure
+      console.error("Failed to mark version for download:", error);
+      toast({ variant: "destructive", title: "Error", description: `No se pudo marcar la versión ${versionToDownload}.` });
     }
   }
 
