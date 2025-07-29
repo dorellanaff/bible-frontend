@@ -156,6 +156,7 @@ export default function Home() {
 
   const handleBookSelect = (selectedBook: Book) => {
     setBook(selectedBook)
+    setChapter(null) // Reset chapter selection
     setChapterSelectorOpen(true);
   }
   
