@@ -65,6 +65,12 @@ export default function Home() {
       const content = data.chapter?.[0]?.data || [];
       setChapterContent(content);
 
+      // 3. After fetching from API, check if this version should be saved locally
+      const versionIsMarkedForDownload = await isVersionDownloaded(version);
+      if (versionIsMarkedForDownload) {
+        await saveChapterToDb(version, book, chapter, content);
+      }
+
     } catch (error) {
         console.error("Failed to fetch chapter content:", error);
         setChapterContent([]);
