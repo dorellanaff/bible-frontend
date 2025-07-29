@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from 'react'
@@ -55,6 +56,13 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
               <TabsTrigger value="antiguo" className="font-headline">Antiguo</TabsTrigger>
               <TabsTrigger value="nuevo" className="font-headline">Nuevo</TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="antiguo" className="mt-0">
+              {/* This content is visually replaced by the card below but required for Tabs to work */}
+            </TabsContent>
+            <TabsContent value="nuevo" className="mt-0">
+              {/* This content is visually replaced by the card below but required for Tabs to work */}
+            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
