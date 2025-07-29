@@ -42,7 +42,7 @@ export default function Home() {
         const bookName = book.name.toLowerCase().replace(/ /g, '');
         // Special mapping for RVR1960 version
         const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-        const response = await fetch(`https://bible-backend-beta.vercel.app/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+        const response = await fetch(`http://ec2-3-134-107-239.us-east-2.compute.amazonaws.com:5001/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
