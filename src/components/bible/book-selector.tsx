@@ -4,7 +4,7 @@
 import * as React from 'react'
 import type { Book } from '@/lib/bible-data'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -39,7 +39,6 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    // Reset scroll position on tab change
     if (value === 'antiguo' && atScrollRef.current) {
       atScrollRef.current.scrollTop = 0;
     }
@@ -49,12 +48,9 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   };
 
   return (
-    <div className="space-y-6 lg:flex lg:flex-col lg:h-[calc(100vh-5rem)]">
-      <Card className="card-material flex-shrink-0">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Seleccionar Testamento</CardTitle>
-        </CardHeader>
-        <CardContent className="p-4 pt-0">
+    <div className="space-y-4 flex flex-col h-full">
+      <Card className="card-material sticky top-0 z-10">
+        <CardContent className="p-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="antiguo" className="font-headline">Antiguo</TabsTrigger>
@@ -64,18 +60,15 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
         </CardContent>
       </Card>
       
-      <Card className="card-material flex-grow flex flex-col overflow-hidden">
-        <CardHeader>
-            <CardTitle className="font-headline text-2xl">Seleccionar Libro</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow overflow-auto p-4 pt-0">
-            <div className="h-full">
+      <Card className="card-material flex-grow overflow-hidden">
+        <CardContent className="p-0 h-full">
+          <div className="h-full">
               {activeTab === 'antiguo' ? (
-                 <ScrollArea className="h-full" viewportRef={atScrollRef}>
+                 <ScrollArea className="h-full p-4" viewportRef={atScrollRef}>
                     <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
                  </ScrollArea>
               ): (
-                <ScrollArea className="h-full" viewportRef={ntScrollRef}>
+                <ScrollArea className="h-full p-4" viewportRef={ntScrollRef}>
                     <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
                 </ScrollArea>
               )}

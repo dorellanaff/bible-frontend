@@ -234,7 +234,7 @@ export default function Home() {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-8 self-start",
+            "w-full lg:w-1/3 xl:w-1/4 h-[calc(100vh-120px)]",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
