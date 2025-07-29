@@ -4,7 +4,7 @@
 import * as React from 'react'
 import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -173,3 +173,5 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     </Card>
   )
 }
+
+    
