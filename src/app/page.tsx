@@ -16,8 +16,6 @@ import { API_BASE_URL } from '@/lib/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
@@ -309,56 +307,28 @@ export default function Home() {
             "w-full lg:w-2/3 xl:w-3/4",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
-            <div className="flex flex-row items-center">
-              {showReadingView && (
-                <Button
-                    onClick={handlePreviousChapter}
-                    disabled={chapter <= 1}
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full h-12 w-12 hidden md:flex mr-4"
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                    <span className="sr-only">Capítulo Anterior</span>
-                  </Button>
-              )}
-
-              <div className="w-full">
-                {showReadingView ? (
-                  <div ref={chapterViewerRef}>
-                    <ChapterViewer
-                      book={book}
-                      chapter={chapter}
-                      version={version}
-                      content={chapterContent}
-                      isLoading={isLoading}
-                      onCompareVerse={handleCompare}
-                      onConcordance={handleConcordance}
-                      onNextChapter={handleNextChapter}
-                      onPreviousChapter={handlePreviousChapter}
-                    />
-                  </div>
-                ) : (
-                    <Card className="card-material flex items-center justify-center h-96">
-                        <CardContent className="text-center text-muted-foreground p-6">
-                            <h3 className="text-2xl font-headline">Bienvenido a Biblia</h3>
-                            <p className="mt-2">Por favor, selecciona un libro para comenzar a leer.</p>
-                        </CardContent>
-                    </Card>
-                )}
-              </div>
-
-              {showReadingView && (
-                <Button
-                    onClick={handleNextChapter}
-                    disabled={!book || chapter >= book.chapters}
-                    variant="outline"
-                    size="icon"
-                    className="rounded-full h-12 w-12 hidden md:flex ml-4"
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                    <span className="sr-only">Capítulo Siguiente</span>
-                  </Button>
+            <div className="w-full">
+              {showReadingView ? (
+                <div ref={chapterViewerRef}>
+                  <ChapterViewer
+                    book={book}
+                    chapter={chapter}
+                    version={version}
+                    content={chapterContent}
+                    isLoading={isLoading}
+                    onCompareVerse={handleCompare}
+                    onConcordance={handleConcordance}
+                    onNextChapter={handleNextChapter}
+                    onPreviousChapter={handlePreviousChapter}
+                  />
+                </div>
+              ) : (
+                  <Card className="card-material flex items-center justify-center h-96">
+                      <CardContent className="text-center text-muted-foreground p-6">
+                          <h3 className="text-2xl font-headline">Bienvenido a Biblia</h3>
+                          <p className="mt-2">Por favor, selecciona un libro para comenzar a leer.</p>
+                      </CardContent>
+                  </Card>
               )}
             </div>
           </section>
@@ -395,5 +365,3 @@ export default function Home() {
     </div>
   )
 }
-
-    
