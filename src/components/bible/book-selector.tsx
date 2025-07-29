@@ -12,10 +12,10 @@ interface BookSelectorProps {
   oldTestamentBooks: Book[];
   newTestamentBooks: Book[];
   selectedBook: Book | null;
-  onBookSelect: (book: Book) => void;
+  onBookSelect: (book: Book | null) => void;
 }
 
-function BookList({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book) => void }) {
+function BookList({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book | null) => void }) {
   return (
     <div className="flex flex-col space-y-2 p-1">
       {books.map(book => (
@@ -39,6 +39,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    onBookSelect(null); // Deseleccionar el libro al cambiar de testamento
     if (value === 'antiguo' && atScrollRef.current) {
       atScrollRef.current.scrollTop = 0;
     }

@@ -152,10 +152,12 @@ export default function Home() {
     document.documentElement.style.setProperty('--text-size', newSize.toString())
   }
 
-  const handleBookSelect = (selectedBook: Book) => {
+  const handleBookSelect = (selectedBook: Book | null) => {
     setBook(selectedBook)
     setChapter(null) // Reset chapter selection
-    setChapterSelectorOpen(true);
+    if (selectedBook) {
+      setChapterSelectorOpen(true);
+    }
   }
   
   const handleChapterSelect = (selectedChapter: number) => {
