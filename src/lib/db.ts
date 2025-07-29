@@ -1,6 +1,6 @@
 // src/lib/db.ts
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { Book, VerseData, BIBLE_BOOKS_OT, BIBLE_BOOKS_NT } from './bible-data';
+import { Book, VerseData } from './bible-data';
 
 const DB_NAME = 'bible-db';
 const DB_VERSION = 1;
@@ -8,7 +8,7 @@ const STORE_NAME = 'bible-versions';
 
 interface BibleDB extends DBSchema {
   [STORE_NAME]: {
-    key: string; // Composite key: `${version}-${bookAbbr}-${chapter}`
+    key: string; // Composite key: `${version}-${bookName}-${chapter}`
     value: VerseData[];
   };
 }
@@ -26,30 +26,29 @@ const getDb = () => {
   return dbPromise;
 };
 
+const getBookKey = (book: Book) => book.name.toLowerCase().replace(/ /g, '');
+
 export const getChapterFromDb = async (version: string, book: Book, chapter: number): Promise<VerseData[] | undefined> => {
   const db = await getDb();
-  const key = `${version}-${book.abbreviation}-${chapter}`;
+  const key = `${version}-${getBookKey(book)}-${chapter}`;
   return db.get(STORE_NAME, key);
 };
 
 export const saveChapterToDb = async (version: string, book: Book, chapter: number, data: VerseData[]): Promise<void> => {
   const db = await getDb();
-  const key = `${version}-${book.abbreviation}-${chapter}`;
+  const key = `${version}-${getBookKey(book)}-${chapter}`;
   await db.put(STORE_NAME, data, key);
 };
 
 export const isVersionDownloaded = async (version: string): Promise<boolean> => {
   const db = await getDb();
-  const allBooks = [...BIBLE_BOOKS_OT, ...BIBLE_BOOKS_NT];
-  const firstBook = allBooks[0];
-  const firstChapterKey = `${version}-${firstBook.abbreviation}-1`;
-  const result = await db.get(STORE_NAME, firstChapterKey);
-  return !!result;
+  // We can't know the first book without fetching, so we check if ANY key for that version exists.
+  const keys = await db.getAllKeys(STORE_NAME);
+  return keys.some(key => key.startsWith(`${version}-`));
 };
 
-export const deleteVersionFromDb = async (version: string): Promise<void> => {
+export const deleteVersionFromDb = async (version: string, allBooks: Book[]): Promise<void> => {
     const db = await getDb();
-    const allBooks = [...BIBLE_BOOKS_OT, ...BIBLE_BOOKS_NT];
     const tx = db.transaction(STORE_NAME, 'readwrite');
     const store = tx.objectStore(STORE_NAME);
 
@@ -57,7 +56,7 @@ export const deleteVersionFromDb = async (version: string): Promise<void> => {
 
     for (const book of allBooks) {
         for (let chapter = 1; chapter <= book.chapters; chapter++) {
-            const key = `${version}-${book.abbreviation}-${chapter}`;
+            const key = `${version}-${getBookKey(book)}-${chapter}`;
             deletePromises.push(store.delete(key));
         }
     }

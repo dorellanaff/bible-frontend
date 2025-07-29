@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import { BIBLE_BOOKS_NT, BIBLE_BOOKS_OT, type Book, type VerseData, ALL_BIBLE_BOOKS, type BibleVersion, getBibleVersions } from '@/lib/bible-data'
+import { type Book, type VerseData, type BibleVersion, getBibleVersions, getBibleBooks } from '@/lib/bible-data'
 import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
 import { VersionSelector } from '@/components/bible/version-selector'
@@ -18,6 +18,7 @@ type SelectedVerse = { book: string; chapter: number; verse: number; text: strin
 
 export default function Home() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
   const [version, setVersion] = useState<string>('NVI')
   const [book, setBook] = useState<Book | null>(null)
   const [chapter, setChapter] = useState<number | null>(null)
@@ -34,11 +35,16 @@ export default function Home() {
   const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchVersions() {
-      const fetchedVersions = await getBibleVersions();
+    async function fetchData() {
+      const [fetchedVersions, fetchedBooks] = await Promise.all([getBibleVersions(), getBibleBooks()]);
       setVersions(fetchedVersions);
+      setBooks(fetchedBooks);
+
+      if (fetchedVersions.length > 0 && !localStorage.getItem('bible-version')) {
+        setVersion(fetchedVersions[0].abbreviation);
+      }
     }
-    fetchVersions();
+    fetchData();
   }, []);
 
   // Effect to run on client-side mount
@@ -55,8 +61,8 @@ export default function Home() {
       setVersion(storedVersion);
     }
 
-    if (storedBookName) {
-      const foundBook = ALL_BIBLE_BOOKS.find(b => b.name === storedBookName);
+    if (storedBookName && books.length > 0) {
+      const foundBook = books.find(b => b.name === storedBookName);
       if (foundBook) {
         setBook(foundBook);
       }
@@ -71,7 +77,7 @@ export default function Home() {
       setTextSize(size)
       document.documentElement.style.setProperty('--text-size', size.toString())
     }
-  }, [])
+  }, [books])
   
   // Effect to save settings to localStorage
   useEffect(() => {
@@ -163,7 +169,7 @@ export default function Home() {
   const handleDownloadVersion = async (versionToDownload: string) => {
     toast({ title: `Iniciando descarga de ${versionToDownload}`, description: "Esto puede tardar unos momentos..." });
     try {
-      for (const currentBook of ALL_BIBLE_BOOKS) {
+      for (const currentBook of books) {
         for (let currentChapter = 1; currentChapter <= currentBook.chapters; currentChapter++) {
           const existing = await getChapterFromDb(versionToDownload, currentBook, currentChapter);
           if (existing) continue;
@@ -189,7 +195,7 @@ export default function Home() {
   const handleDeleteVersion = async (versionToDelete: string) => {
     toast({ title: `Eliminando ${versionToDelete} de la memoria local...` });
     try {
-      await deleteVersionFromDb(versionToDelete);
+      await deleteVersionFromDb(versionToDelete, books);
       toast({ title: "Versión Eliminada", description: `La versión ${versionToDelete} ha sido eliminada del almacenamiento local.` });
     } catch (error) {
       console.error("Failed to delete version:", error);
@@ -200,6 +206,9 @@ export default function Home() {
   if (!isClient) {
     return null;
   }
+
+  const oldTestamentBooks = books.filter(b => b.testament === 'Antiguo Testamento');
+  const newTestamentBooks = books.filter(b => b.testament === 'Nuevo Testamento');
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -216,8 +225,8 @@ export default function Home() {
               isVersionDownloaded={isVersionDownloaded}
             />
             <BookSelector
-              oldTestamentBooks={BIBLE_BOOKS_OT}
-              newTestamentBooks={BIBLE_BOOKS_NT}
+              oldTestamentBooks={oldTestamentBooks}
+              newTestamentBooks={newTestamentBooks}
               selectedBook={book}
               onBookSelect={handleBookSelect}
               selectedChapter={chapter}
@@ -254,6 +263,7 @@ export default function Home() {
             onOpenChange={setCompareOpen}
             verseInfo={selectedVerse}
             versions={versions}
+            books={books}
           />
           <ConcordanceDialog
             isOpen={isConcordanceOpen}

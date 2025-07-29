@@ -1,6 +1,7 @@
+
 "use client"
 
-import { ALL_BIBLE_BOOKS, type BibleVersion } from '@/lib/bible-data'
+import { type BibleVersion, type Book } from '@/lib/bible-data'
 import { getChapterFromDb } from '@/lib/db';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -19,6 +20,7 @@ interface VerseComparisonDialogProps {
     version: string;
   };
   versions: BibleVersion[];
+  books: Book[];
 }
 
 interface VerseComparison {
@@ -26,7 +28,7 @@ interface VerseComparison {
     text: string | null;
 }
 
-export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, versions }: VerseComparisonDialogProps) {
+export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, versions, books }: VerseComparisonDialogProps) {
   const { book, chapter, verse, text, version: currentVersion } = verseInfo;
   const [comparisons, setComparisons] = useState<VerseComparison[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,7 +38,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
       if (!isOpen) return;
       setIsLoading(true);
 
-      const bookObject = ALL_BIBLE_BOOKS.find(b => b.name === book);
+      const bookObject = books.find(b => b.name === book);
       if (!bookObject) {
           setIsLoading(false);
           setComparisons([]);
@@ -76,7 +78,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
     }
     
     fetchAllVersions();
-  }, [isOpen, book, chapter, verse, versions, currentVersion, text]);
+  }, [isOpen, book, chapter, verse, versions, currentVersion, text, books]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
