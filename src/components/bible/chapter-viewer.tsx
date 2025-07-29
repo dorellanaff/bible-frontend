@@ -53,30 +53,31 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
     if (isLeftSwipe) {
       if (chapter >= book.chapters) return;
-      setAnimationClass('animate-slide-out-to-left');
+      setAnimationClass('animate-turn-page-out');
       setTimeout(() => {
         onNextChapter();
-      }, 200);
+      }, 500); // Increased duration for the animation
     } else if (isRightSwipe) {
       if (chapter <= 1) return;
-      setAnimationClass('animate-slide-out-to-right');
+      setAnimationClass('animate-turn-page-out-reverse');
       setTimeout(() => {
         onPreviousChapter();
-      }, 200);
+      }, 500); // Increased duration for the animation
     }
   };
 
   React.useEffect(() => {
-    if (animationClass.includes('slide-out')) {
-      const direction = animationClass.includes('left') ? 'left' : 'right';
-      setAnimationClass(`animate-slide-in-from-${direction}`);
+    if (animationClass.includes('turn-page-out-reverse')) {
+        setAnimationClass('animate-turn-page-in-reverse');
+    } else if (animationClass.includes('turn-page-out')) {
+        setAnimationClass('animate-turn-page-in');
     }
     
     const timer = setTimeout(() => {
-        if (animationClass.includes('slide-in')) {
+        if (animationClass.includes('turn-page-in')) {
             setAnimationClass('');
         }
-    }, 200);
+    }, 500); // Corresponds to animation duration
 
     return () => clearTimeout(timer);
   }, [chapter, content]);
@@ -140,12 +141,12 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
   return (
     <Card 
-      className="card-material overflow-hidden"
+      className="card-material overflow-hidden [perspective:1000px]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      <div ref={contentRef} className={cn(animationClass)}>
+      <div ref={contentRef} className={cn("w-full h-full [transform-style:preserve-3d]", animationClass)}>
         <CardHeader>
           <CardTitle className="font-headline text-3xl md:text-4xl">{book.name} {chapter}</CardTitle>
         </CardHeader>
@@ -173,5 +174,3 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     </Card>
   )
 }
-
-    
