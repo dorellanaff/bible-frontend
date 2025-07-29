@@ -78,13 +78,14 @@ export default function Home() {
 
   const fetchChapterContent = useCallback(async () => {
     if (!book || !chapter || !version) return;
+    
     setIsLoading(true);
+    setChapterContent([]); // Clear previous content
 
     try {
       const dbContent = await getChapterFromDb(version, book, chapter);
       if (dbContent) {
         setChapterContent(dbContent);
-        setIsLoading(false);
         // Check if we need to save this version's chapter locally after fetching from DB
         const versionIsMarkedForDownload = await isVersionDownloaded(version);
         if (versionIsMarkedForDownload) {
