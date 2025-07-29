@@ -3,7 +3,7 @@ import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Book, VerseData } from './bible-data';
 
 const DB_NAME = 'bible-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incremented version to trigger upgrade
 const BIBLE_STORE_NAME = 'bible-versions';
 const DOWNLOAD_STATUS_STORE_NAME = 'download-status';
 
