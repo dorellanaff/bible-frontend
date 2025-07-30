@@ -65,6 +65,20 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const touchEndPos = React.useRef<{ x: number; y: number } | null>(null);
   const isScrolling = React.useRef(false);
   const MIN_SWIPE_DISTANCE = 50;
+  
+  const referenceLetterMap = React.useMemo(() => {
+    const map: Record<number, string> = {};
+    if (!content) return map;
+
+    let refCounter = 0;
+    content.forEach(verseData => {
+        if (verseData.type === 'verse' && verseData.references && verseData.references.length > 0) {
+            map[verseData.number] = String.fromCharCode(97 + refCounter); // 97 is 'a'
+            refCounter++;
+        }
+    });
+    return map;
+  }, [content]);
 
 
   React.useEffect(() => {
@@ -95,12 +109,14 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchStartPos.current) return;
-    touchEndPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
-
-    const yDist = Math.abs(touchEndPos.current.y - touchStartPos.current.y);
-    if (yDist > 10) {
-        isScrolling.current = true;
+    const currentY = e.targetTouches[0].clientY;
+    
+    // Check if user is scrolling vertically
+    if (Math.abs(currentY - touchStartPos.current.y) > 10) {
+      isScrolling.current = true;
     }
+    
+    touchEndPos.current = { x: e.targetTouches[0].clientX, y: currentY };
   };
 
   const handleTouchEnd = () => {
@@ -244,10 +260,13 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   }
 
   const onVerseTouchStart = (e: React.TouchEvent, verseNumber: number) => {
+    // Reset scrolling check on new touch
     isScrolling.current = false;
+    touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
     
     longPressTimeoutRef.current = setTimeout(() => {
-        if (!isScrolling.current) {
+        // Only trigger long press if not scrolling
+        if (!isScrolling.current && longPressTimeoutRef.current) {
             setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
             setOpenMenuVerse(verseNumber);
         }
@@ -255,10 +274,16 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }, 700);
   };
 
-  const onVerseTouchMove = () => {
-    if (longPressTimeoutRef.current) {
-        clearTimeout(longPressTimeoutRef.current);
-        longPressTimeoutRef.current = null;
+  const onVerseTouchMove = (e: React.TouchEvent) => {
+    if (touchStartPos.current) {
+      const deltaY = Math.abs(e.targetTouches[0].clientY - touchStartPos.current.y);
+      if (deltaY > 10) { // If moved more than 10px vertically, consider it scrolling
+        isScrolling.current = true;
+        if (longPressTimeoutRef.current) {
+          clearTimeout(longPressTimeoutRef.current);
+          longPressTimeoutRef.current = null;
+        }
+      }
     }
   };
 
@@ -278,6 +303,8 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             });
         }
     }
+     // Reset touch start position
+    touchStartPos.current = null;
   };
 
   const handleMenuOpen = (verseNumber: number, open: boolean) => {
@@ -297,6 +324,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     const highlightClass = highlight ? HIGHLIGHT_COLORS.find(c => c.color === highlight.color)?.className : '';
     const isSelected = selectedVerseNumbers.has(verseData.number);
     const hasReferences = verseData.references && verseData.references.length > 0;
+    const referenceLetter = referenceLetterMap[verseData.number];
 
     return (
        <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
@@ -326,8 +354,8 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               }}
             >
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
-              {hasReferences && <sup className="font-serif text-primary">a</sup>}
               {verseData.text}
+              {hasReferences && <sup className="font-serif text-primary pl-1">({referenceLetter})</sup>}
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
