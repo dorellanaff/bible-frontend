@@ -365,18 +365,8 @@ export default function Home() {
   const handleDataRefresh = async () => {
     toast({ title: "Actualizando datos...", description: "Por favor, espera un momento." });
     try {
-        localStorage.removeItem('bible-versions-cache');
-        localStorage.removeItem('bible-books-cache');
-
-        const [fetchedVersions, fetchedBooks] = await Promise.all([
-            getBibleVersions(true), 
-            getBibleBooks(true)
-        ]);
-        
-        setVersions(fetchedVersions);
-        setBooks(fetchedBooks);
-
-        toast({ title: "Actualización Completa", description: "Los libros y versiones han sido actualizados." });
+        localStorage.clear();
+        window.location.reload();
     } catch (error) {
         console.error("Failed to refresh data:", error);
         toast({ variant: "destructive", title: "Error", description: "No se pudieron actualizar los datos." });
