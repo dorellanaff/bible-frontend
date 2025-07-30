@@ -373,7 +373,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
                         <Heart className="mr-2 h-4 w-4" /> Resaltar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
-                        <DropdownMenuSubContent sideOffset={8}>
+                        <DropdownMenuSubContent sideOffset={8} align="center">
                             {HIGHLIGHT_COLORS.map(c => (
                                 <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(c.color)}>
                                     <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: c.color }} />
