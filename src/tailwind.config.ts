@@ -103,6 +103,10 @@ export default {
             '0%': { transform: 'rotateY(-180deg)', opacity: '0' },
             '100%': { transform: 'rotateY(0deg)', opacity: '1' },
         },
+        'scroll-progress-animation': {
+          'from': { '--scroll-progress': '0%' },
+          'to': { '--scroll-progress': '100%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',

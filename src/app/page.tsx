@@ -47,7 +47,6 @@ export default function Home() {
   const [mobileView, setMobileView] = useState<'selection' | 'reading'>('selection');
   const isMobile = useIsMobile();
   
-  const [scrollProgress, setScrollProgress] = useState(0);
   const chapterViewerRef = useRef<HTMLDivElement>(null);
   const [comparisonVersions, setComparisonVersions] = useState<string[]>([]);
 
@@ -133,38 +132,6 @@ export default function Home() {
     }
   }, [version, book, chapter, isClient, comparisonVersions]);
   
-  // Effect for scroll progress
-  useEffect(() => {
-    const handleScroll = () => {
-        if (!chapterViewerRef.current) return;
-
-        const contentElement = chapterViewerRef.current;
-        const { scrollTop, scrollHeight, clientHeight } = contentElement;
-        
-        const totalScrollableHeight = scrollHeight - clientHeight;
-        
-        if (totalScrollableHeight > 0) {
-            const currentProgress = (scrollTop / totalScrollableHeight) * 100;
-            setScrollProgress(currentProgress);
-        } else {
-            setScrollProgress(0);
-        }
-    };
-    
-    const contentElement = chapterViewerRef.current;
-    if (contentElement) {
-        contentElement.addEventListener('scroll', handleScroll);
-        // Recalculate on chapter change
-        handleScroll();
-    }
-
-    return () => {
-        if (contentElement) {
-            contentElement.removeEventListener('scroll', handleScroll);
-        }
-    };
-  }, [chapterContent]);
-
   useEffect(() => {
     if (!book || chapter === null || !version) return;
 
@@ -411,7 +378,6 @@ export default function Home() {
         onDownload={handleDownloadVersion}
         onDelete={handleDeleteVersion}
         isVersionDownloaded={isVersionDownloaded}
-        readingProgress={showReadingView ? scrollProgress : 0}
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
         onDataRefresh={handleDataRefresh}

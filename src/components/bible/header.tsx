@@ -22,7 +22,6 @@ interface AppHeaderProps extends Omit<VersionSelectorProps, 'selectedVersion' | 
   onChapterSelect: () => void;
   selectedVersion: string;
   onVersionChange: (version: string) => void;
-  readingProgress: number;
   onDataRefresh: () => void;
   onInfo: () => void;
 }
@@ -34,7 +33,6 @@ export function AppHeader({
   onTextSizeChange, 
   onBookSelect, 
   onChapterSelect,
-  readingProgress, 
   onDataRefresh,
   onInfo,
   ...versionProps 
@@ -77,7 +75,7 @@ export function AppHeader({
           </div>
         </div>
       </div>
-       <ReadingProgressBar progress={readingProgress} />
+       <ReadingProgressBar />
     </header>
   )
 }

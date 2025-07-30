@@ -2,8 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --scroll-progress {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 0%;
+}
+
+@scroll-timeline page-scroll-timeline {
+  source: auto;
+  orientation: 'block';
+}
+
 body {
   font-family: 'Roboto', sans-serif;
+  animation: scroll-progress-animation linear;
+  animation-timeline: page-scroll-timeline;
 }
 
 @layer base {
