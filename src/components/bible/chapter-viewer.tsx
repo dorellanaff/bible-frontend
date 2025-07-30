@@ -305,7 +305,8 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
           <DropdownMenuTrigger asChild>
             <span 
               className={cn("cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors", {
-                'underline decoration-primary decoration-2 underline-offset-4': isSelected
+                'underline decoration-primary decoration-2 underline-offset-4': isSelected,
+                 'select-none': isMobile,
               })}
               onTouchStart={(e) => onVerseTouchStart(e, verseData.number)}
               onTouchMove={onVerseTouchMove}
@@ -372,8 +373,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   return (
     <Card 
       className={cn(
-        "card-material overflow-hidden [perspective:1000px]",
-        { "select-none": isMobile }
+        "card-material overflow-hidden [perspective:1000px]"
       )}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
