@@ -24,7 +24,7 @@ function BookList({ books, selectedBook, onBookSelect, bookRefs }: { books: Book
           ref={el => bookRefs.current[index] = el}
           variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
           onClick={() => onBookSelect(book)}
-          className="font-headline justify-start text-base py-3 h-auto"
+          className="font-headline justify-start text-lg py-3 h-auto"
         >
           {book.name}
         </Button>
@@ -129,8 +129,8 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
             <CardContent className="p-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="antiguo" className="font-headline">Antiguo</TabsTrigger>
-                <TabsTrigger value="nuevo" className="font-headline">Nuevo</TabsTrigger>
+                <TabsTrigger value="antiguo" className="font-headline text-lg">Antiguo</TabsTrigger>
+                <TabsTrigger value="nuevo" className="font-headline text-lg">Nuevo</TabsTrigger>
                 </TabsList>
                 <div 
                     className="flex-grow h-full overflow-y-auto mt-4"
