@@ -37,6 +37,7 @@ export default function Home() {
 
   const [isChapterSelectorOpen, setChapterSelectorOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
+  const [isStateRestored, setIsStateRestored] = useState(false);
   
   const [chapterContent, setChapterContent] = useState<VerseData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -99,24 +100,24 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Only run this effect if books have been loaded
-    if (books.length > 0) {
-      const storedBookName = localStorage.getItem('bible-book');
-      const storedChapter = localStorage.getItem('bible-chapter');
+    if (isClient && books.length > 0 && !isStateRestored) {
+        const storedBookName = localStorage.getItem('bible-book');
+        const storedChapter = localStorage.getItem('bible-chapter');
 
-      if (storedBookName && storedChapter) {
-        const foundBook = books.find(b => b.name === storedBookName);
-        if (foundBook) {
-          setBook(foundBook);
-          const chapterNum = parseInt(storedChapter, 10);
-          setChapter(chapterNum);
-          if (isMobile) {
-            setMobileView('reading');
-          }
+        if (storedBookName && storedChapter) {
+            const foundBook = books.find(b => b.name === storedBookName);
+            if (foundBook) {
+                setBook(foundBook);
+                const chapterNum = parseInt(storedChapter, 10);
+                setChapter(chapterNum);
+                if (isMobile) {
+                    setMobileView('reading');
+                }
+            }
         }
-      }
+        setIsStateRestored(true);
     }
-  }, [books, isMobile]);
+  }, [books, isMobile, isClient, isStateRestored]);
   
   // Effect to save settings to localStorage
   useEffect(() => {
@@ -362,7 +363,7 @@ export default function Home() {
   };
 
 
-  if (!isClient) {
+  if (!isClient || !isStateRestored) {
     return <LoadingAnimation />;
   }
 
@@ -488,4 +489,6 @@ export default function Home() {
     </div>
   )
 }
+    
+
     
