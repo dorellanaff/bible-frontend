@@ -63,9 +63,9 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const [highlightedVersesMap, setHighlightedVersesMap] = React.useState<Record<string, HighlightedVerse | undefined>>({});
 
   const [openMenuIndex, setOpenMenuIndex] = React.useState<number | null>(null);
-  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const longPressTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const isScrollingRef = React.useRef(false);
-  const SCROLL_THRESHOLD = 10;
+  const [selectedVerseNumbers, setSelectedVerseNumbers] = React.useState<Set<number>>(new Set());
 
 
   React.useEffect(() => {
@@ -81,6 +81,11 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     };
     fetchHighlights();
   }, [content, version, book.name, chapter, getHighlightForVerse]);
+
+  // Reset verse selection when chapter changes
+  React.useEffect(() => {
+    setSelectedVerseNumbers(new Set());
+  }, [book, chapter, version]);
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -191,17 +196,36 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }));
   }
 
-  const onVerseTouchStart = (e: React.TouchEvent) => {
-    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  const onVerseTouchStart = (index: number) => {
     isScrollingRef.current = false;
+    longPressTimeoutRef.current = setTimeout(() => {
+        setOpenMenuIndex(index);
+        longPressTimeoutRef.current = null;
+    }, 500);
   };
 
-  const onVerseTouchMove = (e: React.TouchEvent) => {
-    if (isScrollingRef.current || !touchStartRef.current) return;
-    const deltaX = Math.abs(e.touches[0].clientX - touchStartRef.current.x);
-    const deltaY = Math.abs(e.touches[0].clientY - touchStartRef.current.y);
-    if (deltaX > SCROLL_THRESHOLD || deltaY > SCROLL_THRESHOLD) {
-      isScrollingRef.current = true;
+  const onVerseTouchMove = () => {
+    isScrollingRef.current = true;
+    if (longPressTimeoutRef.current) {
+        clearTimeout(longPressTimeoutRef.current);
+        longPressTimeoutRef.current = null;
+    }
+  };
+
+  const onVerseTouchEnd = (verseNumber: number) => {
+    if (longPressTimeoutRef.current) {
+        clearTimeout(longPressTimeoutRef.current);
+        longPressTimeoutRef.current = null;
+        // This was a tap, not a long press
+        setSelectedVerseNumbers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(verseNumber)) {
+                newSet.delete(verseNumber);
+            } else {
+                newSet.add(verseNumber);
+            }
+            return newSet;
+        });
     }
   };
 
@@ -211,6 +235,19 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }
     setOpenMenuIndex(open ? index : null);
   };
+
+  const handleVerseClick = (verseNumber: number) => {
+    // For desktop clicks
+     setSelectedVerseNumbers(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(verseNumber)) {
+            newSet.delete(verseNumber);
+        } else {
+            newSet.add(verseNumber);
+        }
+        return newSet;
+    });
+  }
   
   const renderVerse = (verseData: VerseData, index: number) => {
     const key = `${verseData.type}-${verseData.number}-${index}`;
@@ -220,23 +257,23 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     
     const highlight = highlightedVersesMap[`${chapter}-${verseData.number}`];
     const highlightClass = highlight ? HIGHLIGHT_COLORS.find(c => c.color === highlight.color)?.className : '';
+    const isSelected = selectedVerseNumbers.has(verseData.number);
 
     return (
        <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
         <DropdownMenu open={openMenuIndex === index} onOpenChange={(open) => handleMenuOpen(index, open)}>
           <DropdownMenuTrigger asChild>
             <span 
-              className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors"
-              onTouchStart={onVerseTouchStart}
+              className={cn("cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors", {
+                'underline decoration-primary decoration-2 underline-offset-4': isSelected
+              })}
+              onTouchStart={() => onVerseTouchStart(index)}
               onTouchMove={onVerseTouchMove}
-              onTouchEnd={() => {
-                touchStartRef.current = null;
-              }}
+              onTouchEnd={() => onVerseTouchEnd(verseData.number)}
+              onClick={() => handleVerseClick(verseData.number)}
               onContextMenu={(e) => {
-                if ('ontouchstart' in window) {
-                   e.preventDefault();
-                   handleMenuOpen(index, true);
-                }
+                e.preventDefault();
+                handleMenuOpen(index, true);
               }}
             >
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
