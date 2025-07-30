@@ -95,7 +95,7 @@ export default function Home() {
 
       if (storedBookName && storedChapter) {
         const foundBook = books.find(b => b.name === storedBookName);
-        if (foundBook && (!book || book.name !== foundBook.name)) {
+        if (foundBook) {
           setBook(foundBook);
           const chapterNum = parseInt(storedChapter, 10);
           setChapter(chapterNum);
