@@ -359,17 +359,17 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
-                <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0}>
+                <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
                     <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1} className="text-base py-3">
                     <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1 || !hasReferences}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1 || !hasReferences} className="text-base py-3">
                     <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                 </DropdownMenuItem>
                 <DropdownMenuSub>
-                    <DropdownMenuSubTrigger disabled={selectedVerseNumbers.size === 0}>
+                    <DropdownMenuSubTrigger disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
                         <Heart className="mr-2 h-4 w-4" /> Resaltar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
@@ -388,7 +388,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
                     </DropdownMenuPortal>
                 </DropdownMenuSub>
                  <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleShare} disabled={selectedVerseNumbers.size === 0}>
+                <DropdownMenuItem onClick={handleShare} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
                     <Share2 className="mr-2 h-4 w-4" /> Compartir {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
           </DropdownMenuContent>
