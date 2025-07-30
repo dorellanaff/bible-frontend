@@ -54,11 +54,13 @@ export function AppHeader({
           <div className="w-1/3 text-center">
              {showReadingNav ? (
                 <div className="flex items-center justify-center gap-2">
-                  <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate">
-                      {book.name}
+                  <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1">
+                      <span>{book.name}</span>
+                      <ChevronsUpDown className="h-4 w-4 opacity-50" />
                   </Button>
-                  <Button variant="ghost" onClick={onChapterSelect} className="font-headline font-bold text-lg p-1 h-auto">
-                      {chapter}
+                  <Button variant="ghost" onClick={onChapterSelect} className="font-headline font-bold text-lg p-1 h-auto flex items-center gap-1">
+                      <span>{chapter}</span>
+                      <ChevronsUpDown className="h-4 w-4 opacity-50" />
                   </Button>
                 </div>
              ) : (
