@@ -4,14 +4,13 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { ChevronsUpDown } from 'lucide-react'
-import { TextSizeAdjuster } from './text-size-adjuster'
 import { VersionSelector } from './version-selector'
 import { Button } from '../ui/button'
 import { cn } from '@/lib/utils'
 import type { BibleVersion, Book } from '@/lib/bible-data'
-import { ThemeToggle } from '../theme-toggle'
 import { ReadingProgressBar } from './reading-progress-bar'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { SettingsMenu } from './settings-menu'
 
 
 interface AppHeaderProps extends Omit<VersionSelectorProps, 'selectedVersion' | 'onVersionChange'> {
@@ -38,7 +37,6 @@ export function AppHeader({
   readingProgress, 
   ...versionProps 
 }: AppHeaderProps) {
-  const [isTextSizeAdjusterOpen, setIsTextSizeAdjusterOpen] = React.useState(false);
   const isMobile = useIsMobile();
   
   const showReadingNav = isMobile && isReading && book && chapter;
@@ -73,13 +71,7 @@ export function AppHeader({
           </div>
 
           <div className="w-1/3 flex justify-end items-center gap-2">
-            <TextSizeAdjuster 
-              value={textSize} 
-              onChange={onTextSizeChange}
-              isOpen={isTextSizeAdjusterOpen}
-              onOpenChange={setIsTextSizeAdjusterOpen} 
-            />
-            <ThemeToggle />
+            <SettingsMenu textSize={textSize} onTextSizeChange={onTextSizeChange} />
           </div>
         </div>
       </div>
