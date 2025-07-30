@@ -26,7 +26,7 @@ export function InfoDialog({ isOpen, onOpenChange }: InfoDialogProps) {
             <div className="flex items-start gap-3">
                 <Heart className="h-5 w-5 mt-0.5 text-primary flex-shrink-0" />
                 <p>
-                    Creada con amor y dedicación por <strong>Daniel Orellana</strong> para la gloria de Dios.
+                    Creada con amor y dedicación para la gloria de Dios.
                 </p>
             </div>
             
