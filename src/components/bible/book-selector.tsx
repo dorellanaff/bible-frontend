@@ -133,7 +133,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
                 <TabsTrigger value="nuevo" className="font-headline">Nuevo</TabsTrigger>
                 </TabsList>
                 <div 
-                    className="card-material flex-grow h-full overflow-y-auto mt-4"
+                    className="flex-grow h-full overflow-y-auto mt-4"
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
