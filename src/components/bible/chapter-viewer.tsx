@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
 
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; references?: { source: string; target: string }[] };
@@ -372,7 +372,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   return (
     <Card 
       className={cn(
-        "card-material overflow-hidden [perspective:1000px]"
+        "card-material overflow-hidden [perspective:1000px]",
       )}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
