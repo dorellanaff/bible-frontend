@@ -57,7 +57,7 @@ export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSel
         </DrawerHeader>
         <div className="overflow-y-auto flex-grow">
           <ScrollArea className="h-full">
-            <div className="grid grid-cols-1 gap-2 p-4 pt-0 pb-4">
+            <div className="grid grid-cols-1 gap-2 p-4 pt-0 pb-6">
               {chapters.map((chapter, index) => (
                 <Button
                   key={chapter}
