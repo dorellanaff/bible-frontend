@@ -24,9 +24,10 @@ interface ChapterViewerProps {
   onConcordance: (verse: SelectedVerse) => void;
   onNextChapter: () => void;
   onPreviousChapter: () => void;
+  onChapterSelect: () => void;
 }
 
-export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter }: ChapterViewerProps) {
+export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter, onChapterSelect }: ChapterViewerProps) {
   const { toast } = useToast()
   const [touchStart, setTouchStart] = React.useState(0);
   const [touchEnd, setTouchEnd] = React.useState(0);
@@ -150,7 +151,13 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     >
       <div ref={contentRef} className={cn("w-full h-full [transform-style:preserve-3d]", animationClass)}>
         <CardHeader>
-          <CardTitle className="font-headline text-3xl md:text-4xl">{book.name} {chapter}</CardTitle>
+          <CardTitle 
+             className="font-headline text-3xl md:text-4xl flex items-center gap-2 cursor-pointer md:cursor-default"
+             onClick={() => onChapterSelect()}
+          >
+            <span>{book.name}</span>
+            <span>{chapter}</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (

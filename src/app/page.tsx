@@ -217,6 +217,18 @@ export default function Home() {
     }
     window.scrollTo(0, 0);
   }
+  
+  const handleHeaderBookSelect = () => {
+    if (isMobile) {
+      setMobileView('selection');
+    }
+  }
+  
+  const handleHeaderChapterSelect = () => {
+    if (book) {
+      setChapterSelectorOpen(true);
+    }
+  }
 
   const handleNextChapter = () => {
     if (book && chapter && chapter < book.chapters) {
@@ -229,12 +241,6 @@ export default function Home() {
       handleChapterSelect(chapter - 1);
     }
   };
-
-  const handleBackToSelection = () => {
-    if (isMobile) {
-      setChapterSelectorOpen(true);
-    }
-  }
 
   const handleBackToBooks = () => {
     setChapterSelectorOpen(false);
@@ -310,10 +316,13 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <AppHeader 
+        book={book}
+        chapter={chapter}
         textSize={textSize} 
         onTextSizeChange={handleTextSizeChange} 
-        showBack={showMobileReadingView}
-        onBack={handleBackToSelection}
+        isReading={showMobileReadingView}
+        onBookSelect={handleHeaderBookSelect}
+        onChapterSelect={handleHeaderChapterSelect}
         versions={versions}
         selectedVersion={version}
         onVersionChange={setVersion}
@@ -356,6 +365,7 @@ export default function Home() {
                     onConcordance={handleConcordance}
                     onNextChapter={handleNextChapter}
                     onPreviousChapter={handlePreviousChapter}
+                    onChapterSelect={() => setChapterSelectorOpen(true)}
                   />
                 </div>
               ) : (
