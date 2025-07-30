@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Heart } from 'lucide-react'
+import { toTitleCase } from '@/lib/utils'
 
 interface BookSelectorProps {
   oldTestamentBooks: Book[];
@@ -45,7 +46,7 @@ function BookList({
               onClick={() => onBookSelect(book)}
               className="font-headline justify-start text-base py-3 h-auto flex-grow"
             >
-              {book.name}
+              {toTitleCase(book.name)}
             </Button>
             {count > 0 && (
                 <Button 

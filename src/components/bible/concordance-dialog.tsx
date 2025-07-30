@@ -4,6 +4,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent } from '@/components/ui/card'
+import { toTitleCase } from "@/lib/utils";
 
 interface ConcordanceDialogProps {
   isOpen: boolean;
@@ -27,14 +28,14 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Concordancia Bíblica</DialogTitle>
           <DialogDescription>
-            Referencias cruzadas para {book} {chapter}:{verse}
+            Referencias cruzadas para {toTitleCase(book)} {chapter}:{verse}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">
                 <Card className="bg-primary/10 border-primary/50">
                     <CardContent className="p-4">
-                        <p className="font-bold text-readable text-primary">{book} {chapter}:{verse}</p>
+                        <p className="font-bold text-readable text-primary">{toTitleCase(book)} {chapter}:{verse}</p>
                         <p className="mt-1 text-readable">{text}</p>
                     </CardContent>
                 </Card>

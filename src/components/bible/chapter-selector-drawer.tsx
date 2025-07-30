@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ArrowLeft } from 'lucide-react'
+import { toTitleCase } from '@/lib/utils'
 
 interface ChapterSelectorDrawerProps {
   book: Book;
@@ -51,7 +52,7 @@ export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSel
               <span className="sr-only">Volver</span>
             </Button>
             <div>
-              <DrawerTitle className="font-headline text-2xl">{book.name}</DrawerTitle>
+              <DrawerTitle className="font-headline text-2xl">{toTitleCase(book.name)}</DrawerTitle>
             </div>
           </div>
         </DrawerHeader>

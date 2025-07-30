@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { useEffect, useState } from 'react'
 import { Skeleton } from '../ui/skeleton';
 import { API_BASE_URL } from '@/lib/api';
+import { toTitleCase } from '@/lib/utils';
 
 interface VerseComparisonDialogProps {
   isOpen: boolean;
@@ -105,7 +106,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Comparar Versiones</DialogTitle>
           <DialogDescription>
-            {book} {chapter}:{verse}
+            {toTitleCase(book)} {chapter}:{verse}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">

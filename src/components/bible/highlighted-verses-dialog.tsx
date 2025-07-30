@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { HighlightedVerse } from "@/lib/db";
 import { Book } from "@/lib/bible-data";
 import { Skeleton } from "../ui/skeleton";
+import { toTitleCase } from "@/lib/utils";
 
 interface HighlightedVersesDialogProps {
   isOpen: boolean;
@@ -37,7 +38,7 @@ export function HighlightedVersesDialog({ isOpen, onOpenChange, book, getHighlig
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Versículos Resaltados</DialogTitle>
           <DialogDescription>
-            Mostrando versículos resaltados de {book.name}
+            Mostrando versículos resaltados de {toTitleCase(book.name)}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
@@ -57,7 +58,7 @@ export function HighlightedVersesDialog({ isOpen, onOpenChange, book, getHighlig
                             style={{ borderLeft: `4px solid ${item.color}`}}
                         >
                             <CardContent className="p-4">
-                                <p className="font-bold text-readable text-primary">{item.book} {item.chapter}:{item.verse} ({item.version})</p>
+                                <p className="font-bold text-readable text-primary">{toTitleCase(item.book)} {item.chapter}:{item.verse} ({item.version})</p>
                                 <p className="mt-1 text-readable">{item.text}</p>
                             </CardContent>
                         </Card>

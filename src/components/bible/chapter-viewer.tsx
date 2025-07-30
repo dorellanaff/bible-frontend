@@ -8,7 +8,7 @@ import { HighlightedVerse } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+import { cn, toTitleCase } from '@/lib/utils'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
 
 
@@ -150,7 +150,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     const versesToCopy = Array.from(selectedVerseNumbers).sort((a,b) => a - b).map(verseNumber => {
       const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
-      return verseData ? `${book.name} ${chapter}:${verseData.number} - ${verseData.text}` : '';
+      return verseData ? `${toTitleCase(book.name)} ${chapter}:${verseData.number} - ${verseData.text}` : '';
     }).filter(Boolean);
 
     const textToCopy = versesToCopy.join('\n\n');
@@ -187,12 +187,12 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         verseRange = sortedVerses.join(', ');
     }
     
-    const shareText = `${book.name} ${chapter}:${verseRange} (${version})\n\n"${versesToShare.join(' ')}"`;
+    const shareText = `${toTitleCase(book.name)} ${chapter}:${verseRange} (${version})\n\n"${versesToShare.join(' ')}"`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${book.name} ${chapter}:${verseRange}`,
+          title: `${toTitleCase(book.name)} ${chapter}:${verseRange}`,
           text: shareText,
         });
       } catch (error) {
@@ -383,7 +383,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
           <CardTitle 
              className="font-headline text-3xl md:text-4xl flex items-center gap-2"
           >
-            <span>{book.name}</span>
+            <span>{toTitleCase(book.name)}</span>
              <span className="font-headline font-bold text-3xl md:text-4xl p-1 h-auto flex items-center gap-1">
                 {chapter}
             </span>
@@ -415,5 +415,3 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
-
-    

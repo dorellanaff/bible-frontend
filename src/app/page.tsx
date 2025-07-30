@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent } from '@/components/ui/card';
 import { API_BASE_URL } from '@/lib/api';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+import { cn, toTitleCase } from '@/lib/utils';
 import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
 import { LoadingAnimation } from '@/components/bible/loading-animation';
 import { HighlightedVersesDialog } from '@/components/bible/highlighted-verses-dialog';
