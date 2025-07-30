@@ -22,7 +22,7 @@ export function LoadingAnimation() {
   return (
     <div className="loading-container">
       <div className="circular-progress"></div>
-      <h2 className="text-2xl font-headline text-primary mt-8">
+      <h2 className="text-2xl font-display text-primary mt-8">
         Una biblia para ti{dots}
       </h2>
     </div>

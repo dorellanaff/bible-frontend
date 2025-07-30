@@ -20,6 +20,7 @@ export default {
       fontFamily: {
         body: ['Roboto', 'sans-serif'],
         headline: ['Lora', 'serif'],
+        display: ['Playfair Display', 'serif'],
         code: ['monospace'],
       },
       colors: {
