@@ -345,10 +345,10 @@ export default function Home() {
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
       />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 flex-1 overflow-hidden">
-        <div className="flex flex-col lg:flex-row gap-8 h-full">
+      <main className="flex-1 container mx-auto p-4 sm:p-6 lg:p-8 flex overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-8 w-full">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4 h-full",
+            "w-full lg:w-1/3 xl:w-1/4",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
@@ -360,7 +360,7 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4 flex-grow h-full flex flex-col",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow flex flex-col",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
 
@@ -422,9 +422,3 @@ export default function Home() {
   )
 }
     
-
-    
-
-    
-
-
