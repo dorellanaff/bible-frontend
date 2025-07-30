@@ -38,7 +38,7 @@ function VersionList({
     handleVersionSelect: (abbr: string) => void;
 }) {
     return (
-        <div className="flex flex-col gap-1 p-2">
+        <div className="flex flex-col gap-1 p-2 pb-6">
             {versions.map(version => (
               <div key={version.id} className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 flex-grow">
