@@ -256,8 +256,10 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             [`${chapter}-${verseData.number}`]: color ? { ...verseInfo, color, id: '', createdAt: new Date() } : undefined
         }));
     });
+    
     setSelectedVerseNumbers(new Set()); // Clear selection after highlighting
     setOpenMenuVerse(null);
+    setIsHighlightMenuOpen(false); // Reset to main menu view
   }
 
   const onVerseTouchStart = (e: React.TouchEvent, verseNumber: number) => {
@@ -308,7 +310,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     touchStartPos.current = null;
   };
 
-  const handleMenuOpen = (verseNumber: number, open: boolean) => {
+  const handleMenuOpen = (open: boolean) => {
     if (!open) {
       setOpenMenuVerse(null);
       setIsHighlightMenuOpen(false); // Reset highlight menu on close
@@ -330,7 +332,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     return (
        <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
-        <DropdownMenu open={openMenuVerse === verseData.number} onOpenChange={(open) => handleMenuOpen(verseData.number, open)}>
+        <DropdownMenu open={openMenuVerse === verseData.number} onOpenChange={(open) => handleMenuOpen(open)}>
           <DropdownMenuTrigger asChild>
             <span 
               className={cn("cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors", {
@@ -450,3 +452,5 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
+
+    
