@@ -2,17 +2,16 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Share2, BookCopy, Heart, ChevronDown } from 'lucide-react'
+import { BookOpen, Copy, Share2, BookCopy, Heart, Check } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
 import { HighlightedVerse } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string };
@@ -93,7 +92,6 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     const xDist = touchStart.x - touchEnd.x;
     const yDist = touchStart.y - touchEnd.y;
 
-    // Only consider it a swipe if the horizontal movement is greater than the vertical movement
     if (Math.abs(xDist) < Math.abs(yDist) || Math.abs(xDist) < minSwipeDistance) {
       return;
     }
@@ -128,7 +126,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         if (animationClass.includes('turn-page-in')) {
             setAnimationClass('');
         }
-    }, 500); // Corresponds to animation duration
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [chapter, content, animationClass]);
@@ -198,54 +196,53 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     return (
        <p key={key} className={cn("leading-relaxed inline", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
-        <Popover>
-          <PopoverTrigger asChild>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <span className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors">
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
               {verseData.text}
             </span>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="flex flex-col text-sm">
-                    <Button variant="ghost" className="justify-start p-2" onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text} (${version})`)}>
-                        <Copy className="mr-2 h-4 w-4" /> Copiar
-                    </Button>
-                    <Separator />
-                    <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseData, onCompareVerse)}>
-                        <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
-                    </Button>
-                    <Separator />
-                    <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseData, onConcordance)}>
-                        <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
-                    </Button>
-                    <Separator />
-                     <DropdownMenuSub>
-                        <DropdownMenuSubTrigger className="justify-start p-2 h-auto text-sm font-normal text-foreground hover:bg-accent">
-                            <Heart className="mr-2 h-4 w-4" /> Resaltar
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                            <DropdownMenuSubContent>
-                                {HIGHLIGHT_COLORS.map(c => (
-                                    <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(verseData, highlight?.color === c.color ? null : c.color)}>
-                                        <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: c.color }} />
-                                        {c.name}
-                                        {highlight?.color === c.color && <Check className="ml-auto h-4 w-4" />}
-                                    </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <Separator />
-                    <Button variant="ghost" className="justify-start p-2" onClick={() => handleShare(verseData)}>
-                        <Share2 className="mr-2 h-4 w-4" /> Compartir
-                    </Button>
-                </div>
-              </DropdownMenuTrigger>
-            </DropdownMenu>
-          </PopoverContent>
-        </Popover>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+                <DropdownMenuItem onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text} (${version})`)}>
+                    <Copy className="mr-2 h-4 w-4" /> Copiar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAction(verseData, onCompareVerse)}>
+                    <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleAction(verseData, onConcordance)}>
+                    <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
+                </DropdownMenuItem>
+                <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                        <Heart className="mr-2 h-4 w-4" /> Resaltar
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                            {HIGHLIGHT_COLORS.map(c => (
+                                <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(verseData, highlight?.color === c.color ? null : c.color)}>
+                                    <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: c.color }} />
+                                    {c.name}
+                                    {highlight?.color === c.color && <Check className="ml-auto h-4 w-4" />}
+                                </DropdownMenuItem>
+                            ))}
+                             {highlight && (
+                                <>
+                                 <DropdownMenuSeparator />
+                                 <DropdownMenuItem onClick={() => handleHighlightClick(verseData, null)}>
+                                    Quitar resaltado
+                                 </DropdownMenuItem>
+                                </>
+                            )}
+                        </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                </DropdownMenuSub>
+                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleShare(verseData)}>
+                    <Share2 className="mr-2 h-4 w-4" /> Compartir
+                </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </p>
     )
   }
@@ -293,3 +290,5 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
+
+    
