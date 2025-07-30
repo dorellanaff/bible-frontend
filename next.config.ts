@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 import withPWA from 'next-pwa';
 
@@ -61,9 +62,7 @@ const pwaConfig = withPWA({
   fallbacks: {
     document: '/offline', // fallback for document requests
   },
-  workboxOptions: {
-    cleanupOutdatedCaches: true,
-  },
+  cleanupOutdatedCaches: true,
 });
 
 const nextConfig: NextConfig = {
