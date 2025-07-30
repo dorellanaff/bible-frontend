@@ -67,8 +67,6 @@ export default function Home() {
 
     // Load saved settings from localStorage
     const storedVersion = localStorage.getItem('bible-version');
-    const storedBookName = localStorage.getItem('bible-book');
-    const storedChapter = localStorage.getItem('bible-chapter');
     const storedTextSize = localStorage.getItem('bible-text-size');
     const storedComparisonVersions = localStorage.getItem('bible-comparison-versions');
 
@@ -81,26 +79,33 @@ export default function Home() {
       setComparisonVersions(JSON.parse(storedComparisonVersions));
     }
     
-    // Only set book and chapter if both are present
-    if (storedBookName && storedChapter && books.length > 0) {
-      const foundBook = books.find(b => b.name === storedBookName);
-      if (foundBook) {
-        setBook(foundBook);
-        const chapterNum = parseInt(storedChapter, 10);
-        setChapter(chapterNum);
-        if (isMobile) {
-          setMobileView('reading');
-        }
-      }
-    }
-    
     if (storedTextSize) {
       const size = parseFloat(storedTextSize)
       setTextSize(size)
       document.documentElement.style.setProperty('--text-size', size.toString())
     }
 
-  }, [books, isMobile])
+  }, []);
+
+  useEffect(() => {
+    // Only run this effect if books have been loaded
+    if (books.length > 0) {
+      const storedBookName = localStorage.getItem('bible-book');
+      const storedChapter = localStorage.getItem('bible-chapter');
+
+      if (storedBookName && storedChapter) {
+        const foundBook = books.find(b => b.name === storedBookName);
+        if (foundBook && (!book || book.name !== foundBook.name)) {
+          setBook(foundBook);
+          const chapterNum = parseInt(storedChapter, 10);
+          setChapter(chapterNum);
+          if (isMobile) {
+            setMobileView('reading');
+          }
+        }
+      }
+    }
+  }, [books, isMobile]);
   
   // Effect to save settings to localStorage
   useEffect(() => {
@@ -189,7 +194,9 @@ export default function Home() {
       }
     };
     
-    fetchChapterContent();
+    if (book && chapter && version) {
+      fetchChapterContent();
+    }
   }, [book, chapter, version, toast]);
 
 
@@ -381,7 +388,7 @@ export default function Home() {
         </div>
       </main>
       
-      {selectedVerse && versions.length > 0 && (
+      {selectedVerse && (
         <>
           <VerseComparisonDialog
             isOpen={isCompareOpen}
@@ -411,3 +418,5 @@ export default function Home() {
     </div>
   )
 }
+
+    
