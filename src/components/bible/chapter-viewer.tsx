@@ -100,6 +100,38 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
       description: "Versículo copiado al portapapeles.",
     })
   }
+  
+  const handleShare = async (verseData: VerseData) => {
+    if (verseData.type !== 'verse') return;
+
+    const shareText = `${book.name} ${chapter}:${verseData.number} (${version})\n\n"${verseData.text}"`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${book.name} ${chapter}:${verseData.number}`,
+          text: shareText,
+        });
+      } catch (error) {
+        // Silently ignore share cancellation
+        if ((error as DOMException)?.name !== 'AbortError') {
+            console.error('Error al compartir:', error);
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "No se pudo compartir el versículo.",
+            });
+        }
+      }
+    } else {
+      // Fallback for browsers that don't support the Web Share API
+      copyToClipboard(shareText)
+      toast({
+        title: "Copiado al portapapeles",
+        description: "La función de compartir no está disponible en tu navegador. El versículo ha sido copiado.",
+      });
+    }
+  };
 
   const handleAction = (verseData: VerseData, action: (verse: SelectedVerse) => void) => {
     if(verseData.type !== 'verse') return;
@@ -139,7 +171,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
                 <Droplet className="mr-2 h-4 w-4" /> Resaltar
               </Button>
                <Separator />
-              <Button variant="ghost" className="justify-start p-2">
+              <Button variant="ghost" className="justify-start p-2" onClick={() => handleShare(verseData)}>
                 <Share2 className="mr-2 h-4 w-4" /> Compartir
               </Button>
             </div>
@@ -192,5 +224,3 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
-
-    
