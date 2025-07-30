@@ -95,7 +95,10 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
                 return;
             }
 
-            const [refChapter, refVerse] = chapterAndVerse.split(':').map(Number);
+            const [refChapterStr, refVerseStr] = chapterAndVerse.split(':');
+            const refChapter = parseInt(refChapterStr, 10);
+            const refVerse = parseInt(refVerseStr, 10);
+            
             const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
             const verseText = chapterData?.find(v => v.number === refVerse && v.type === 'verse')?.text || null;
             
