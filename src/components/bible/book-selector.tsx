@@ -132,28 +132,26 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
                 <TabsTrigger value="antiguo" className="font-headline">Antiguo</TabsTrigger>
                 <TabsTrigger value="nuevo" className="font-headline">Nuevo</TabsTrigger>
                 </TabsList>
+                <div 
+                    className="card-material flex-grow h-full overflow-y-auto mt-4"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    <TabsContent value="antiguo">
+                        <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={atScrollRef}>
+                            <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
+                        </ScrollArea>
+                    </TabsContent>
+                    <TabsContent value="nuevo">
+                        <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={ntScrollRef}>
+                            <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
+                        </ScrollArea>
+                    </TabsContent>
+                </div>
             </Tabs>
             </CardContent>
         </Card>
-      </div>
-      
-      <div 
-        className="card-material flex-grow h-full overflow-y-auto"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div className="h-full">
-            {activeTab === 'antiguo' ? (
-                <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={atScrollRef}>
-                    <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
-                </ScrollArea>
-            ): (
-                <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={ntScrollRef}>
-                    <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
-                </ScrollArea>
-            )}
-        </div>
       </div>
     </div>
   )
