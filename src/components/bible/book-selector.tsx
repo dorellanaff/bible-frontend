@@ -15,12 +15,13 @@ interface BookSelectorProps {
   onBookSelect: (book: Book | null) => void;
 }
 
-function BookList({ books, selectedBook, onBookSelect }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book | null) => void }) {
+function BookList({ books, selectedBook, onBookSelect, bookRefs }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book | null) => void, bookRefs: React.MutableRefObject<(HTMLButtonElement | null)[]> }) {
   return (
     <div className="flex flex-col space-y-2 p-1">
-      {books.map(book => (
+      {books.map((book, index) => (
         <Button
           key={book.name}
+          ref={el => bookRefs.current[index] = el}
           variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
           onClick={() => onBookSelect(book)}
           className="font-headline justify-start text-base py-3 h-auto"
@@ -37,9 +38,34 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   const atScrollRef = React.useRef<HTMLDivElement>(null);
   const ntScrollRef = React.useRef<HTMLDivElement>(null);
 
+  const atBookRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
+  atBookRefs.current = oldTestamentBooks.map((_, i) => atBookRefs.current[i] ?? React.createRef<HTMLButtonElement>() as any);
+  
+  const ntBookRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
+  ntBookRefs.current = newTestamentBooks.map((_, i) => ntBookRefs.current[i] ?? React.createRef<HTMLButtonElement>() as any);
+
+
   const [touchStart, setTouchStart] = React.useState(0);
   const [touchEnd, setTouchEnd] = React.useState(0);
   const minSwipeDistance = 50;
+
+  React.useEffect(() => {
+    if (selectedBook) {
+      const isAT = oldTestamentBooks.some(b => b.name === selectedBook.name);
+      const isNT = newTestamentBooks.some(b => b.name === selectedBook.name);
+
+      if (isAT && activeTab === 'antiguo') {
+          const bookIndex = oldTestamentBooks.findIndex(b => b.name === selectedBook.name);
+          const bookElement = atBookRefs.current[bookIndex];
+          bookElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (isNT && activeTab === 'nuevo') {
+          const bookIndex = newTestamentBooks.findIndex(b => b.name === selectedBook.name);
+          const bookElement = ntBookRefs.current[bookIndex];
+          bookElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [selectedBook, activeTab, oldTestamentBooks, newTestamentBooks]);
+
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(0); // Reset touch end
@@ -108,11 +134,11 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
         <div className="h-full">
             {activeTab === 'antiguo' ? (
                 <ScrollArea className="h-[calc(100vh-12rem)] p-4" viewportRef={atScrollRef}>
-                    <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+                    <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
                 </ScrollArea>
             ): (
                 <ScrollArea className="h-[calc(100vh-12rem)] p-4" viewportRef={ntScrollRef}>
-                    <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} />
+                    <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
                 </ScrollArea>
             )}
         </div>
