@@ -137,12 +137,11 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
             <div className="grid gap-4 py-4">
                 <Card className="bg-primary/10 border-primary/50">
                     <CardContent className="p-4">
-                        <p className="font-bold text-readable text-primary">{toTitleCase(book)} {chapter}:{verse}</p>
                         <p className="mt-1 text-readable">{text}</p>
                     </CardContent>
                 </Card>
             
-                <div className="mt-4 space-y-4">
+                <div className="space-y-4">
                     {concordanceItems.length > 0 ? (
                        concordanceItems.map((item, index) => (
                         <div key={index} className="p-4 rounded-lg bg-secondary/50">
