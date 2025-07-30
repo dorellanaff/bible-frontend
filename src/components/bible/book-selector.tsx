@@ -128,7 +128,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
         <Card className="card-material flex-shrink-0">
             <CardContent className="p-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className="grid w-full grid-cols-2 h-12">
                 <TabsTrigger value="antiguo" className="font-headline text-lg">Antiguo</TabsTrigger>
                 <TabsTrigger value="nuevo" className="font-headline text-lg">Nuevo</TabsTrigger>
                 </TabsList>
