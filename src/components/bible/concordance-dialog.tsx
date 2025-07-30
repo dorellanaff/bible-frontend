@@ -45,12 +45,16 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
 
   const getBookByName = (name: string): Book | undefined => {
     const normalizedName = name.toUpperCase().replace(/\s+/g, '');
-    return books.find(b => b.name.toUpperCase().replace(/\s+/g, '').startsWith(normalizedName));
+    // Some references might have "1ra" "2da", etc. We need to handle this.
+    const cleanName = normalizedName.replace(/^(1RA|2DA|3RA)/, (match) => {
+        return match.slice(0, -2);
+    });
+    return books.find(b => b.name.toUpperCase().replace(/\s+/g, '').includes(cleanName));
   }
   
   const fetchChapterData = async (version: string, book: Book, chapter: number): Promise<VerseData[] | null> => {
       let chapterData = await getChapterFromDb(version, book, chapter);
-      if (chapterData) {
+      if (chapterData && Array.isArray(chapterData)) {
           return chapterData;
       }
       try {
@@ -62,9 +66,8 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
               const data = await response.json();
               const verses = data.chapter?.[0]?.number;
               if (Array.isArray(verses)) {
-                chapterData = verses;
-                await saveChapterToDb(version, book, chapter, chapterData);
-                return chapterData;
+                await saveChapterToDb(version, book, chapter, verses);
+                return verses;
               }
           }
       } catch (e) {
@@ -83,28 +86,38 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
         setConcordanceItems(references.map(ref => ({ target: ref.target, text: null, loading: true })));
 
         references.forEach(async (ref, index) => {
-            const [rawBookName, chapterAndVerse] = ref.target.split(' ');
+            const [rawBookName, chapterAndVerse] = ref.target.split(/ (.+)/);
+            
             const refBook = getBookByName(rawBookName);
             
             if (!refBook || !chapterAndVerse) {
                 setConcordanceItems(prev => {
                     const newItems = [...prev];
-                    newItems[index] = { ...newItems[index], text: "Libro no encontrado.", loading: false };
+                    newItems[index] = { ...newItems[index], text: "Referencia no válida.", loading: false };
+                    return newItems;
+                });
+                return;
+            }
+            
+            const [refChapterStr, refVerseStr] = chapterAndVerse.split(':');
+            const refChapter = parseInt(refChapterStr, 10);
+            const refVerse = parseInt(refVerseStr, 10);
+            
+            if (isNaN(refChapter) || isNaN(refVerse)) {
+                 setConcordanceItems(prev => {
+                    const newItems = [...prev];
+                    newItems[index] = { ...newItems[index], text: "Referencia mal formateada.", loading: false };
                     return newItems;
                 });
                 return;
             }
 
-            const [refChapterStr, refVerseStr] = chapterAndVerse.split(':');
-            const refChapter = parseInt(refChapterStr, 10);
-            const refVerse = parseInt(refVerseStr, 10);
-            
             const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
-            const verseText = chapterData?.find(v => v.number === refVerse && v.type === 'verse')?.text || null;
-            
+            const verseData = chapterData?.find(v => v.number === refVerse && v.type === 'verse');
+
             setConcordanceItems(prev => {
                 const newItems = [...prev];
-                newItems[index] = { ...newItems[index], text: verseText, loading: false };
+                newItems[index] = { ...newItems[index], text: verseData?.text || null, loading: false };
                 return newItems;
             });
         });
