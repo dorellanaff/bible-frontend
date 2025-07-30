@@ -463,6 +463,7 @@ export default function Home() {
                   getHighlightForVerse={getHighlightForVerse}
                   onNextChapter={handleNextChapter}
                   onPreviousChapter={handlePreviousChapter}
+                  isMobile={isMobile}
                 />
               ) : (
                   <Card className="card-material flex items-center justify-center h-full">

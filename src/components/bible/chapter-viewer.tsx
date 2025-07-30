@@ -28,6 +28,7 @@ interface ChapterViewerProps {
   getHighlightForVerse: (version: string, book: string, chapter: number, verse: number) => Promise<HighlightedVerse | undefined>;
   onNextChapter: () => void;
   onPreviousChapter: () => void;
+  isMobile: boolean;
 }
 
 const HIGHLIGHT_COLORS = [
@@ -50,6 +51,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     getHighlightForVerse, 
     onNextChapter, 
     onPreviousChapter,
+    isMobile,
 }, ref) => {
   const { toast } = useToast()
   
@@ -88,45 +90,45 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.targetTouches.length > 1) return; // Ignore multi-touch gestures
+
     isScrolling.current = false;
     touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
 
-    const { clientX, clientY } = e.targetTouches[0];
-    const swipeStartX = clientX;
-
     const handleTouchMove = (moveEvent: TouchEvent) => {
-      if (!isScrolling.current) {
-        const { clientX: moveX, clientY: moveY } = moveEvent.targetTouches[0];
-        const xDist = Math.abs(swipeStartX - moveX);
-        if (xDist > 10) { // A bit of horizontal movement is fine, but not too much for vertical scroll
-          isScrolling.current = true;
+        if (!touchStartPos.current) return;
+        const moveX = moveEvent.targetTouches[0].clientX;
+        const moveY = moveEvent.targetTouches[0].clientY;
+        const xDist = Math.abs(moveX - touchStartPos.current.x);
+        const yDist = Math.abs(moveY - touchStartPos.current.y);
+
+        if (xDist > SCROLL_THRESHOLD || yDist > SCROLL_THRESHOLD) {
+            isScrolling.current = true;
         }
-      }
     };
 
     const handleTouchEnd = (endEvent: TouchEvent) => {
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+        
+        if (!touchStartPos.current || isScrolling.current) return;
+        
+        const endX = endEvent.changedTouches[0].clientX;
+        const xDist = endX - touchStartPos.current.x;
 
-      if (isScrolling.current || !touchStartPos.current) return;
-      
-      const { clientX, clientY } = endEvent.changedTouches[0];
-      const xDist = Math.abs(touchStartPos.current.x - clientX);
-      const yDist = Math.abs(touchStartPos.current.y - clientY);
-
-      if (xDist > yDist && xDist > SCROLL_THRESHOLD + 20) { // Horizontal swipe
-        if (touchStartPos.current.x > clientX) { // Swipe left
-            if (chapter < book.chapters) {
-                setAnimationClass('animate-turn-page-out');
-                setTimeout(() => onNextChapter(), 500);
-            }
-        } else { // Swipe right
-            if (chapter > 1) {
-                setAnimationClass('animate-turn-page-out-reverse');
-                setTimeout(() => onPreviousChapter(), 500);
+        if (Math.abs(xDist) > SCROLL_THRESHOLD + 40) { // Horizontal swipe
+            if (xDist < 0) { // Swipe left
+                if (chapter < book.chapters) {
+                    setAnimationClass('animate-turn-page-out');
+                    setTimeout(() => onNextChapter(), 500);
+                }
+            } else { // Swipe right
+                if (chapter > 1) {
+                    setAnimationClass('animate-turn-page-out-reverse');
+                    setTimeout(() => onPreviousChapter(), 500);
+                }
             }
         }
-      }
     };
 
     document.addEventListener('touchmove', handleTouchMove);
@@ -381,7 +383,10 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
   return (
     <Card 
-      className="card-material overflow-hidden [perspective:1000px]"
+      className={cn(
+        "card-material overflow-hidden [perspective:1000px]",
+        { "select-none": isMobile }
+      )}
       onTouchStart={handleTouchStart}
     >
       <div ref={contentRef} className={cn("w-full h-full [transform-style:preserve-3d]", animationClass)}>
