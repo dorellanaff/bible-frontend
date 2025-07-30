@@ -25,7 +25,7 @@ type SelectedVerse = { book: string; chapter: number; verse: number; text: strin
 export default function Home() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
-  const [version, setVersion] = useState<string>('NVI')
+  const [version, setVersion] = useState<string>('')
   const [book, setBook] = useState<Book | null>(null)
   const [chapter, setChapter] = useState<number | null>(null)
   const [textSize, setTextSize] = useState(1)
@@ -67,7 +67,10 @@ export default function Home() {
       setVersions(fetchedVersions);
       setBooks(fetchedBooks);
 
-      if (fetchedVersions.length > 0 && !localStorage.getItem('bible-version')) {
+      const storedVersion = localStorage.getItem('bible-version');
+      if (storedVersion) {
+        setVersion(storedVersion);
+      } else if (fetchedVersions.length > 0) {
         const defaultVersion = fetchedVersions.find(v => v.abbreviation === 'NVI') || fetchedVersions[0];
         setVersion(defaultVersion.abbreviation);
       }
@@ -80,14 +83,8 @@ export default function Home() {
     setIsClient(true)
 
     // Load saved settings from localStorage
-    const storedVersion = localStorage.getItem('bible-version');
     const storedTextSize = localStorage.getItem('bible-text-size');
     const storedComparisonVersions = localStorage.getItem('bible-comparison-versions');
-
-
-    if (storedVersion) {
-      setVersion(storedVersion);
-    }
 
     if (storedComparisonVersions) {
       setComparisonVersions(JSON.parse(storedComparisonVersions));
@@ -124,7 +121,9 @@ export default function Home() {
   // Effect to save settings to localStorage
   useEffect(() => {
     if (isClient) {
-      localStorage.setItem('bible-version', version);
+      if (version) {
+        localStorage.setItem('bible-version', version);
+      }
       if (book) {
         localStorage.setItem('bible-book', book.name);
       }
@@ -519,6 +518,8 @@ export default function Home() {
     </div>
   )
 }
+    
+
     
 
     
