@@ -151,11 +151,12 @@ export default function Home() {
   }, [chapterContent]);
 
   useEffect(() => {
+    if (!book || chapter === null || !version) return;
+
     const fetchChapterContent = async () => {
-      if (!book || !chapter || !version) return;
-      
       setIsLoading(true);
       setChapterContent([]); // Clear previous content
+      window.scrollTo(0, 0); // Scroll to top on new chapter/version
 
       try {
         const dbContent = await getChapterFromDb(version, book, chapter);
@@ -194,9 +195,8 @@ export default function Home() {
       }
     };
     
-    if (book && chapter && version) {
-      fetchChapterContent();
-    }
+    fetchChapterContent();
+    
   }, [book, chapter, version, toast]);
 
 
@@ -418,5 +418,3 @@ export default function Home() {
     </div>
   )
 }
-
-    
