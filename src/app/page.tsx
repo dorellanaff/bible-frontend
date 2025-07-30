@@ -317,7 +317,7 @@ export default function Home() {
   
   const showReadingView = book && chapter;
   const showMobileSelectionView = isMobile && mobileView === 'selection';
-  const showMobileReadingView = isMobile && mobileView === 'reading';
+  const showMobileReadingView = isMobile && mobileView === 'reading' && showReadingView;
 
   const versionsForComparison = versions.filter(v => comparisonVersions.includes(v.abbreviation));
 
