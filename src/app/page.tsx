@@ -214,6 +214,7 @@ export default function Home() {
   }
 
   const handleBookSelect = (selectedBook: Book | null) => {
+    chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
     setBook(selectedBook)
     setChapter(null) // Reset chapter selection
     if (selectedBook) {
@@ -369,10 +370,9 @@ export default function Home() {
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
 
-            <div className="w-full h-full" >
+            <div className="w-full h-full" ref={chapterViewerRef}>
               {showReadingView ? (
                 <ChapterViewer
-                  ref={chapterViewerRef}
                   book={book}
                   chapter={chapter}
                   version={version}

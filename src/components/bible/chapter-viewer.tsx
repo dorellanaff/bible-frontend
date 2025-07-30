@@ -151,7 +151,6 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
   return (
     <Card 
-      ref={ref}
       className="card-material overflow-hidden [perspective:1000px]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
