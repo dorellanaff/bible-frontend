@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Computer, Moon, Settings, Sun, Minus, Plus } from "lucide-react"
+import { Computer, Moon, Settings, Sun, Minus, Plus, RefreshCw } from "lucide-react"
 import { useTheme } from "next-themes"
 
 import { Button } from "@/components/ui/button"
@@ -19,9 +19,10 @@ import { Slider } from "@/components/ui/slider"
 interface SettingsMenuProps {
   textSize: number;
   onTextSizeChange: (size: number) => void;
+  onDataRefresh: () => void;
 }
 
-export function SettingsMenu({ textSize, onTextSizeChange }: SettingsMenuProps) {
+export function SettingsMenu({ textSize, onTextSizeChange, onDataRefresh }: SettingsMenuProps) {
   const { setTheme } = useTheme()
 
   const handleSliderChange = (values: number[]) => {
@@ -72,6 +73,12 @@ export function SettingsMenu({ textSize, onTextSizeChange }: SettingsMenuProps) 
         <DropdownMenuItem onClick={() => setTheme("system")}>
           <Computer className="mr-2 h-4 w-4" />
           <span>Sistema</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Datos</DropdownMenuLabel>
+        <DropdownMenuItem onClick={onDataRefresh}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            <span>Actualizar datos</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

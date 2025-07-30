@@ -28,7 +28,6 @@ interface ChapterViewerProps {
   getHighlightForVerse: (version: string, book: string, chapter: number, verse: number) => Promise<HighlightedVerse | undefined>;
   onNextChapter: () => void;
   onPreviousChapter: () => void;
-  onChapterSelect: () => void;
 }
 
 const HIGHLIGHT_COLORS = [
@@ -50,13 +49,9 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     onHighlight,
     getHighlightForVerse, 
     onNextChapter, 
-    onPreviousChapter, 
-    onChapterSelect 
+    onPreviousChapter,
 }, ref) => {
   const { toast } = useToast()
-  const [touchStart, setTouchStart] = React.useState<{ x: number, y: number } | null>(null);
-  const [touchEnd, setTouchEnd] = React.useState<{ x: number, y: number } | null>(null);
-  const minSwipeDistance = 50;
   
   const [animationClass, setAnimationClass] = React.useState('');
   const contentRef = React.useRef<HTMLDivElement>(null);
@@ -64,8 +59,12 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
   const [openMenuVerse, setOpenMenuVerse] = React.useState<number | null>(null);
   const longPressTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
-  const isScrollingRef = React.useRef(false);
   const [selectedVerseNumbers, setSelectedVerseNumbers] = React.useState<Set<number>>(new Set());
+
+  // Touch/Scroll detection logic
+  const touchStartPos = React.useRef<{ x: number, y: number } | null>(null);
+  const isScrolling = React.useRef(false);
+  const SCROLL_THRESHOLD = 10; // pixels
 
 
   React.useEffect(() => {
@@ -89,53 +88,51 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
-  };
+    isScrolling.current = false;
+    touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStart) return;
-    const currentTouch = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
-    setTouchEnd(currentTouch);
-    const xDist = touchStart.x - currentTouch.x;
+    const { clientX, clientY } = e.targetTouches[0];
+    const swipeStartX = clientX;
 
-    if (Math.abs(xDist) > 10) { // If moved horizontally, consider it a page swipe attempt
-        isScrollingRef.current = true;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd || !isScrollingRef.current) {
-        isScrollingRef.current = false;
-        return;
-    }
-
-    const xDist = touchStart.x - touchEnd.x;
-    const yDist = touchStart.y - touchEnd.y;
-
-    if (Math.abs(xDist) < Math.abs(yDist) || Math.abs(xDist) < minSwipeDistance) {
-      return;
-    }
-
-    const isLeftSwipe = xDist > 0;
-
-    if (isLeftSwipe) {
-      if (chapter < book.chapters) {
-        setAnimationClass('animate-turn-page-out');
-        setTimeout(() => {
-          onNextChapter();
-        }, 500);
+    const handleTouchMove = (moveEvent: TouchEvent) => {
+      if (!isScrolling.current) {
+        const { clientX: moveX, clientY: moveY } = moveEvent.targetTouches[0];
+        const xDist = Math.abs(swipeStartX - moveX);
+        if (xDist > 10) { // A bit of horizontal movement is fine, but not too much for vertical scroll
+          isScrolling.current = true;
+        }
       }
-    } else {
-      if (chapter > 1) {
-        setAnimationClass('animate-turn-page-out-reverse');
-        setTimeout(() => {
-          onPreviousChapter();
-        }, 500);
+    };
+
+    const handleTouchEnd = (endEvent: TouchEvent) => {
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+
+      if (isScrolling.current || !touchStartPos.current) return;
+      
+      const { clientX, clientY } = endEvent.changedTouches[0];
+      const xDist = Math.abs(touchStartPos.current.x - clientX);
+      const yDist = Math.abs(touchStartPos.current.y - clientY);
+
+      if (xDist > yDist && xDist > SCROLL_THRESHOLD + 20) { // Horizontal swipe
+        if (touchStartPos.current.x > clientX) { // Swipe left
+            if (chapter < book.chapters) {
+                setAnimationClass('animate-turn-page-out');
+                setTimeout(() => onNextChapter(), 500);
+            }
+        } else { // Swipe right
+            if (chapter > 1) {
+                setAnimationClass('animate-turn-page-out-reverse');
+                setTimeout(() => onPreviousChapter(), 500);
+            }
+        }
       }
-    }
-    isScrollingRef.current = false;
+    };
+
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', handleTouchEnd);
   };
+
 
   React.useEffect(() => {
     if (animationClass.includes('turn-page-out-reverse')) {
@@ -169,6 +166,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
       description: `${selectedVerseNumbers.size} versículo(s) copiado(s) al portapapeles.`,
     });
     setSelectedVerseNumbers(new Set()); // Clear selection
+    setOpenMenuVerse(null);
   }
   
   const handleShare = async () => {
@@ -221,6 +219,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         });
     }
     setSelectedVerseNumbers(new Set()); // Clear selection
+    setOpenMenuVerse(null);
   };
 
 
@@ -228,6 +227,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
     if (!verseData) return;
     action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
+    setOpenMenuVerse(null);
   }
 
   const handleHighlightClick = (color: string | null) => {
@@ -246,12 +246,15 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         }));
     });
     setSelectedVerseNumbers(new Set()); // Clear selection after highlighting
+    setOpenMenuVerse(null);
   }
 
   const onVerseTouchStart = (e: React.TouchEvent, verseNumber: number) => {
-    isScrollingRef.current = false;
+    isScrolling.current = false;
+    touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+    
     longPressTimeoutRef.current = setTimeout(() => {
-        if (!isScrollingRef.current) {
+        if (!isScrolling.current) {
             setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
             setOpenMenuVerse(verseNumber);
         }
@@ -259,11 +262,15 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }, 700);
   };
 
-  const onVerseTouchMove = () => {
-    isScrollingRef.current = true;
-    if (longPressTimeoutRef.current) {
-        clearTimeout(longPressTimeoutRef.current);
-        longPressTimeoutRef.current = null;
+  const onVerseTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    const currentY = e.targetTouches[0].clientY;
+    if (Math.abs(currentY - touchStartPos.current.y) > SCROLL_THRESHOLD) {
+      isScrolling.current = true;
+      if (longPressTimeoutRef.current) {
+          clearTimeout(longPressTimeoutRef.current);
+          longPressTimeoutRef.current = null;
+      }
     }
   };
 
@@ -271,7 +278,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     if (longPressTimeoutRef.current) {
         clearTimeout(longPressTimeoutRef.current);
         longPressTimeoutRef.current = null;
-        if (!isScrollingRef.current) {
+        if (!isScrolling.current) {
             setSelectedVerseNumbers(prev => {
                 const newSet = new Set(prev);
                 if (newSet.has(verseNumber)) {
@@ -376,8 +383,6 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     <Card 
       className="card-material overflow-hidden [perspective:1000px]"
       onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
     >
       <div ref={contentRef} className={cn("w-full h-full [transform-style:preserve-3d]", animationClass)}>
         <CardHeader>

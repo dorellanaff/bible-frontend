@@ -362,6 +362,27 @@ export default function Home() {
     }
   };
 
+  const handleDataRefresh = async () => {
+    toast({ title: "Actualizando datos...", description: "Por favor, espera un momento." });
+    try {
+        localStorage.removeItem('bible-versions-cache');
+        localStorage.removeItem('bible-books-cache');
+
+        const [fetchedVersions, fetchedBooks] = await Promise.all([
+            getBibleVersions(), 
+            getBibleBooks()
+        ]);
+        
+        setVersions(fetchedVersions);
+        setBooks(fetchedBooks);
+
+        toast({ title: "Actualización Completa", description: "Los libros y versiones han sido actualizados." });
+    } catch (error) {
+        console.error("Failed to refresh data:", error);
+        toast({ variant: "destructive", title: "Error", description: "No se pudieron actualizar los datos." });
+    }
+  };
+
 
   if (!isClient || !isStateRestored) {
     return <LoadingAnimation />;
@@ -399,6 +420,7 @@ export default function Home() {
         readingProgress={showReadingView ? scrollProgress : 0}
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
+        onDataRefresh={handleDataRefresh}
       />
       <main className="flex-1 flex overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-8 w-full h-full p-4 sm:p-6 lg:p-8">
@@ -434,7 +456,6 @@ export default function Home() {
                   getHighlightForVerse={getHighlightForVerse}
                   onNextChapter={handleNextChapter}
                   onPreviousChapter={handlePreviousChapter}
-                  onChapterSelect={() => setChapterSelectorOpen(true)}
                 />
               ) : (
                   <Card className="card-material flex items-center justify-center h-full">
