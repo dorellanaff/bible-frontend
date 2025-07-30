@@ -94,11 +94,21 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
+    if (!touchStart) return;
+    const currentTouch = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+    setTouchEnd(currentTouch);
+    const xDist = touchStart.x - currentTouch.x;
+
+    if (Math.abs(xDist) > 10) { // If moved horizontally, consider it a page swipe attempt
+        isScrollingRef.current = true;
+    }
   };
 
   const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
+    if (!touchStart || !touchEnd || !isScrollingRef.current) {
+        isScrollingRef.current = false;
+        return;
+    }
 
     const xDist = touchStart.x - touchEnd.x;
     const yDist = touchStart.y - touchEnd.y;
@@ -124,6 +134,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         }, 500);
       }
     }
+    isScrollingRef.current = false;
   };
 
   React.useEffect(() => {
@@ -237,21 +248,15 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     setSelectedVerseNumbers(new Set()); // Clear selection after highlighting
   }
 
-  const onVerseTouchStart = (verseNumber: number) => {
+  const onVerseTouchStart = (e: React.TouchEvent, verseNumber: number) => {
     isScrollingRef.current = false;
     longPressTimeoutRef.current = setTimeout(() => {
         if (!isScrollingRef.current) {
-            setSelectedVerseNumbers(prev => {
-                const newSet = new Set(prev);
-                if (!newSet.has(verseNumber)) {
-                    newSet.add(verseNumber);
-                }
-                return newSet;
-            });
+            setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
             setOpenMenuVerse(verseNumber);
         }
         longPressTimeoutRef.current = null;
-    }, 500);
+    }, 700);
   };
 
   const onVerseTouchMove = () => {
@@ -262,20 +267,21 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }
   };
 
-  const onVerseTouchEnd = (verseNumber: number) => {
+  const onVerseTouchEnd = (e: React.TouchEvent, verseNumber: number) => {
     if (longPressTimeoutRef.current) {
         clearTimeout(longPressTimeoutRef.current);
         longPressTimeoutRef.current = null;
-        // This was a tap, not a long press
-        setSelectedVerseNumbers(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(verseNumber)) {
-                newSet.delete(verseNumber);
-            } else {
-                newSet.add(verseNumber);
-            }
-            return newSet;
-        });
+        if (!isScrollingRef.current) {
+            setSelectedVerseNumbers(prev => {
+                const newSet = new Set(prev);
+                if (newSet.has(verseNumber)) {
+                    newSet.delete(verseNumber);
+                } else {
+                    newSet.add(verseNumber);
+                }
+                return newSet;
+            });
+        }
     }
   };
 
@@ -304,12 +310,17 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               className={cn("cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors", {
                 'underline decoration-primary decoration-2 underline-offset-4': isSelected
               })}
-              onTouchStart={() => onVerseTouchStart(verseData.number)}
+              onTouchStart={(e) => onVerseTouchStart(e, verseData.number)}
               onTouchMove={onVerseTouchMove}
-              onTouchEnd={() => onVerseTouchEnd(verseData.number)}
-              onClick={(e) => { // Desktop click
-                 if (!('ontouchstart' in window)) {
-                    onVerseTouchEnd(verseData.number);
+              onTouchEnd={(e) => onVerseTouchEnd(e, verseData.number)}
+              onClick={(e) => {
+                 if (!('ontouchstart' in window)) { // For desktop clicks
+                    setSelectedVerseNumbers(prev => {
+                        const newSet = new Set(prev);
+                        if (newSet.has(verseData.number)) newSet.delete(verseData.number);
+                        else newSet.add(verseData.number);
+                        return newSet;
+                    });
                  }
               }}
               onContextMenu={(e) => { // Desktop right-click
@@ -374,9 +385,9 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
              className="font-headline text-3xl md:text-4xl flex items-center gap-2"
           >
             <span>{book.name}</span>
-            <Button variant="ghost" className="font-headline font-bold text-3xl md:text-4xl p-1 h-auto flex items-center gap-1">
-                <span>{chapter}</span>
-            </Button>
+             <span className="font-headline font-bold text-3xl md:text-4xl p-1 h-auto flex items-center gap-1">
+                {chapter}
+            </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
