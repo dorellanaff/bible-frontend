@@ -12,7 +12,6 @@ import { VerseComparisonDialog } from '@/components/bible/verse-comparison-dialo
 import { ConcordanceDialog } from '@/components/bible/concordance-dialog'
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent } from '@/components/ui/card';
-import { API_BASE_URL } from '@/lib/api';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn, toTitleCase } from '@/lib/utils';
 import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
@@ -71,7 +70,7 @@ export default function Home() {
       if (storedVersion) {
         setVersion(storedVersion);
       } else if (fetchedVersions.length > 0) {
-        // No default version
+        setVersion(fetchedVersions[0].abbreviation);
       }
     }
     fetchData();
