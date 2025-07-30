@@ -3,10 +3,21 @@ import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Book, VerseData } from './bible-data';
 
 const DB_NAME = 'bible-db';
-const DB_VERSION = 2; // Incremented version to trigger upgrade
+const DB_VERSION = 3; // Incremented version to trigger upgrade
 const BIBLE_STORE_NAME = 'bible-versions';
 const DOWNLOAD_STATUS_STORE_NAME = 'download-status';
+const HIGHLIGHTED_VERSES_STORE_NAME = 'highlighted-verses';
 
+export interface HighlightedVerse {
+  id: string; // `${version}-${bookName}-${chapter}-${verse}`
+  book: string;
+  chapter: number;
+  verse: number;
+  text: string;
+  color: string;
+  version: string;
+  createdAt: Date;
+}
 
 interface BibleDB extends DBSchema {
   [BIBLE_STORE_NAME]: {
@@ -16,6 +27,11 @@ interface BibleDB extends DBSchema {
   [DOWNLOAD_STATUS_STORE_NAME]: {
     key: string; // version abbreviation
     value: boolean; // true if downloaded/downloading
+  };
+  [HIGHLIGHTED_VERSES_STORE_NAME]: {
+    key: string;
+    value: HighlightedVerse;
+    indexes: { 'book': string };
   }
 }
 
@@ -24,12 +40,19 @@ let dbPromise: Promise<IDBPDatabase<BibleDB>> | null = null;
 const getDb = () => {
   if (!dbPromise) {
     dbPromise = openDB<BibleDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
+      upgrade(db, oldVersion) {
         if (!db.objectStoreNames.contains(BIBLE_STORE_NAME)) {
             db.createObjectStore(BIBLE_STORE_NAME);
         }
         if (!db.objectStoreNames.contains(DOWNLOAD_STATUS_STORE_NAME)) {
             db.createObjectStore(DOWNLOAD_STATUS_STORE_NAME);
+        }
+        if (oldVersion < 3) {
+            if (db.objectStoreNames.contains(HIGHLIGHTED_VERSES_STORE_NAME)) {
+                db.deleteObjectStore(HIGHLIGHTED_VERSES_STORE_NAME);
+            }
+            const store = db.createObjectStore(HIGHLIGHTED_VERSES_STORE_NAME, { keyPath: 'id' });
+            store.createIndex('book', 'book');
         }
       },
     });
@@ -37,7 +60,10 @@ const getDb = () => {
   return dbPromise;
 };
 
-const getBookKey = (book: Book) => book.name.toLowerCase().replace(/ /g, '');
+const getBookKey = (book: Book | string) => {
+    const name = typeof book === 'string' ? book : book.name;
+    return name.toLowerCase().replace(/ /g, '');
+}
 
 export const getChapterFromDb = async (version: string, book: Book, chapter: number): Promise<VerseData[] | undefined> => {
   const db = await getDb();
@@ -78,3 +104,42 @@ export const deleteVersionFromDb = async (version: string, allBooks: Book[]): Pr
 
     await Promise.all([...deletePromises, tx.done]);
 };
+
+
+// --- Highlighted Verses Functions ---
+
+const getHighlightId = (version: string, book: string, chapter: number, verse: number) => {
+    return `${version}-${getBookKey(book)}-${chapter}-${verse}`;
+}
+
+export const saveHighlightedVerse = async (verseInfo: Omit<HighlightedVerse, 'id' | 'createdAt'>): Promise<void> => {
+    const db = await getDb();
+    const id = getHighlightId(verseInfo.version, verseInfo.book, verseInfo.chapter, verseInfo.verse);
+    await db.put(HIGHLIGHTED_VERSES_STORE_NAME, { ...verseInfo, id, createdAt: new Date() });
+}
+
+export const removeHighlightedVerse = async (version: string, book: string, chapter: number, verse: number): Promise<void> => {
+    const db = await getDb();
+    const id = getHighlightId(version, book, chapter, verse);
+    await db.delete(HIGHLIGHTED_VERSES_STORE_NAME, id);
+}
+
+export const getHighlightForVerse = async (version: string, book: string, chapter: number, verse: number): Promise<HighlightedVerse | undefined> => {
+    const db = await getDb();
+    const id = getHighlightId(version, book, chapter, verse);
+    return db.get(HIGHLIGHTED_VERSES_STORE_NAME, id);
+}
+
+export const getAllHighlightedVerses = async (): Promise<HighlightedVerse[]> => {
+    const db = await getDb();
+    return db.getAll(HIGHLIGHTED_VERSES_STORE_NAME);
+}
+
+export const getHighlightedVersesForBook = async (bookName: string): Promise<HighlightedVerse[]> => {
+    const db = await getDb();
+    const verses = await db.getAllFromIndex(HIGHLIGHTED_VERSES_STORE_NAME, 'book', bookName);
+    return verses.sort((a,b) => {
+        if (a.chapter !== b.chapter) return a.chapter - b.chapter;
+        return a.verse - b.verse;
+    });
+}

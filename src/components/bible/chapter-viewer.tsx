@@ -2,8 +2,9 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Droplet, Share2, BookCopy } from 'lucide-react'
+import { BookOpen, Copy, Share2, BookCopy, Heart, ChevronDown } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
+import { HighlightedVerse } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,8 @@ import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal } from '@/components/ui/dropdown-menu';
+
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string };
 
@@ -22,12 +25,35 @@ interface ChapterViewerProps {
   isLoading: boolean;
   onCompareVerse: (verse: SelectedVerse) => void;
   onConcordance: (verse: SelectedVerse) => void;
+  onHighlight: (verse: SelectedVerse, color: string | null) => void;
+  getHighlightForVerse: (version: string, book: string, chapter: number, verse: number) => Promise<HighlightedVerse | undefined>;
   onNextChapter: () => void;
   onPreviousChapter: () => void;
   onChapterSelect: () => void;
 }
 
-export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps>(({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter, onChapterSelect }, ref) => {
+const HIGHLIGHT_COLORS = [
+  { name: 'Amarillo', color: '#fef08a', className: 'bg-yellow-200/70' },
+  { name: 'Verde', color: '#bbf7d0', className: 'bg-green-200/70' },
+  { name: 'Azul', color: '#bfdbfe', className: 'bg-blue-200/70' },
+  { name: 'Rosa', color: '#fbcfe8', className: 'bg-pink-200/70' },
+  { name: 'Morado', color: '#e9d5ff', className: 'bg-purple-200/70' },
+];
+
+export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps>(({ 
+    book, 
+    chapter, 
+    version, 
+    content, 
+    isLoading, 
+    onCompareVerse, 
+    onConcordance,
+    onHighlight,
+    getHighlightForVerse, 
+    onNextChapter, 
+    onPreviousChapter, 
+    onChapterSelect 
+}, ref) => {
   const { toast } = useToast()
   const [touchStart, setTouchStart] = React.useState<{ x: number, y: number } | null>(null);
   const [touchEnd, setTouchEnd] = React.useState<{ x: number, y: number } | null>(null);
@@ -35,6 +61,21 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   
   const [animationClass, setAnimationClass] = React.useState('');
   const contentRef = React.useRef<HTMLDivElement>(null);
+  const [highlightedVersesMap, setHighlightedVersesMap] = React.useState<Record<string, HighlightedVerse | undefined>>({});
+
+  React.useEffect(() => {
+    const fetchHighlights = async () => {
+        if (!content || content.length === 0) return;
+        const newMap: Record<string, HighlightedVerse | undefined> = {};
+        for (const verseData of content) {
+            if(verseData.type !== 'verse') continue;
+            const highlight = await getHighlightForVerse(version, book.name, chapter, verseData.number);
+            newMap[`${chapter}-${verseData.number}`] = highlight;
+        }
+        setHighlightedVersesMap(newMap);
+    };
+    fetchHighlights();
+  }, [content, version, book.name, chapter, getHighlightForVerse]);
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -113,7 +154,6 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
           text: shareText,
         });
       } catch (error) {
-        // Silently ignore share cancellation
         if ((error as DOMException)?.name !== 'AbortError') {
             console.error('Error al compartir:', error);
             toast({
@@ -124,7 +164,6 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         }
       }
     } else {
-      // Fallback for browsers that don't support the Web Share API
       copyToClipboard(shareText)
       toast({
         title: "Copiado al portapapeles",
@@ -137,15 +176,28 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     if(verseData.type !== 'verse') return;
     action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
   }
+
+  const handleHighlightClick = (verseData: VerseData, color: string | null) => {
+    if (verseData.type !== 'verse') return;
+    const verseInfo = { book: book.name, chapter, verse: verseData.number, text: verseData.text, version };
+    onHighlight(verseInfo, color);
+    setHighlightedVersesMap(prev => ({
+        ...prev,
+        [`${chapter}-${verseData.number}`]: color ? { ...verseInfo, color, id: '', createdAt: new Date() } : undefined
+    }));
+  }
   
   const renderVerse = (verseData: VerseData, index: number) => {
     const key = `${verseData.type}-${verseData.number}-${index}`;
     if (verseData.type === 'title') {
       return <h3 key={key} className="text-xl font-bold font-headline mt-6 mb-2 text-primary">{verseData.text}</h3>;
     }
+    
+    const highlight = highlightedVersesMap[`${chapter}-${verseData.number}`];
+    const highlightClass = highlight ? HIGHLIGHT_COLORS.find(c => c.color === highlight.color)?.className : '';
 
     return (
-       <p key={key} className="leading-relaxed">
+       <p key={key} className={cn("leading-relaxed inline", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
         <Popover>
           <PopoverTrigger asChild>
             <span className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors">
@@ -154,27 +206,44 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             </span>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
-            <div className="flex flex-col text-sm">
-              <Button variant="ghost" className="justify-start p-2" onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text} (${version})`)}>
-                <Copy className="mr-2 h-4 w-4" /> Copiar
-              </Button>
-              <Separator />
-              <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseData, onCompareVerse)}>
-                <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
-              </Button>
-              <Separator />
-              <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseData, onConcordance)}>
-                <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
-              </Button>
-              <Separator />
-              <Button variant="ghost" className="justify-start p-2">
-                <Droplet className="mr-2 h-4 w-4" /> Resaltar
-              </Button>
-               <Separator />
-              <Button variant="ghost" className="justify-start p-2" onClick={() => handleShare(verseData)}>
-                <Share2 className="mr-2 h-4 w-4" /> Compartir
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex flex-col text-sm">
+                    <Button variant="ghost" className="justify-start p-2" onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text} (${version})`)}>
+                        <Copy className="mr-2 h-4 w-4" /> Copiar
+                    </Button>
+                    <Separator />
+                    <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseData, onCompareVerse)}>
+                        <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
+                    </Button>
+                    <Separator />
+                    <Button variant="ghost" className="justify-start p-2" onClick={() => handleAction(verseData, onConcordance)}>
+                        <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
+                    </Button>
+                    <Separator />
+                     <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="justify-start p-2 h-auto text-sm font-normal text-foreground hover:bg-accent">
+                            <Heart className="mr-2 h-4 w-4" /> Resaltar
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                                {HIGHLIGHT_COLORS.map(c => (
+                                    <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(verseData, highlight?.color === c.color ? null : c.color)}>
+                                        <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: c.color }} />
+                                        {c.name}
+                                        {highlight?.color === c.color && <Check className="ml-auto h-4 w-4" />}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <Separator />
+                    <Button variant="ghost" className="justify-start p-2" onClick={() => handleShare(verseData)}>
+                        <Share2 className="mr-2 h-4 w-4" /> Compartir
+                    </Button>
+                </div>
+              </DropdownMenuTrigger>
+            </DropdownMenu>
           </PopoverContent>
         </Popover>
       </p>

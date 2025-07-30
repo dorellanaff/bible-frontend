@@ -7,33 +7,72 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Heart } from 'lucide-react'
 
 interface BookSelectorProps {
   oldTestamentBooks: Book[];
   newTestamentBooks: Book[];
   selectedBook: Book | null;
   onBookSelect: (book: Book | null) => void;
+  highlightCounts: Record<string, number>;
+  onShowHighlights: (book: Book) => void;
 }
 
-function BookList({ books, selectedBook, onBookSelect, bookRefs }: { books: Book[], selectedBook: Book | null, onBookSelect: (book: Book | null) => void, bookRefs: React.MutableRefObject<(HTMLButtonElement | null)[]> }) {
+function BookList({ 
+  books, 
+  selectedBook, 
+  onBookSelect, 
+  bookRefs, 
+  highlightCounts,
+  onShowHighlights
+}: { 
+  books: Book[], 
+  selectedBook: Book | null, 
+  onBookSelect: (book: Book | null) => void, 
+  bookRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>,
+  highlightCounts: Record<string, number>,
+  onShowHighlights: (book: Book) => void
+}) {
   return (
     <div className="flex flex-col space-y-2 p-1">
-      {books.map((book, index) => (
-        <Button
-          key={book.name}
-          ref={el => bookRefs.current[index] = el}
-          variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
-          onClick={() => onBookSelect(book)}
-          className="font-headline justify-start text-lg py-3 h-auto w-full"
-        >
-          {book.name}
-        </Button>
-      ))}
+      {books.map((book, index) => {
+        const count = highlightCounts[book.name] || 0;
+        return (
+          <div key={book.name} className="flex items-center gap-1">
+            <Button
+              ref={el => bookRefs.current[index] = el}
+              variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
+              onClick={() => onBookSelect(book)}
+              className="font-headline justify-start text-base py-3 h-auto flex-grow"
+            >
+              {book.name}
+            </Button>
+            {count > 0 && (
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowHighlights(book);
+                  }}
+                >
+                  <div className="relative">
+                    <Heart className="h-5 w-5 text-red-500" />
+                    <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {count}
+                    </span>
+                  </div>
+                </Button>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
 
-export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBook, onBookSelect }: BookSelectorProps) {
+export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBook, onBookSelect, highlightCounts, onShowHighlights }: BookSelectorProps) {
   const [activeTab, setActiveTab] = React.useState('antiguo');
   const atScrollRef = React.useRef<HTMLDivElement>(null);
   const ntScrollRef = React.useRef<HTMLDivElement>(null);
@@ -128,30 +167,46 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
         <Card className="card-material flex-shrink-0">
             <CardContent className="p-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-                <TabsList className="grid w-full grid-cols-2 h-12">
-                <TabsTrigger value="antiguo" className="font-headline text-lg">Antiguo</TabsTrigger>
-                <TabsTrigger value="nuevo" className="font-headline text-lg">Nuevo</TabsTrigger>
+                <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="antiguo" className="font-headline text-base">Antiguo</TabsTrigger>
+                <TabsTrigger value="nuevo" className="font-headline text-base">Nuevo</TabsTrigger>
                 </TabsList>
-                <div 
-                    className="flex-grow h-full mt-4"
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    <TabsContent value="antiguo" className="h-full">
-                        <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={atScrollRef}>
-                            <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
-                        </ScrollArea>
-                    </TabsContent>
-                    <TabsContent value="nuevo" className="h-full">
-                        <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={ntScrollRef}>
-                            <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
-                        </ScrollArea>
-                    </TabsContent>
-                </div>
             </Tabs>
             </CardContent>
         </Card>
+      </div>
+       <div 
+          className="flex-grow overflow-auto"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+      >
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+          <TabsContent value="antiguo" className="h-full mt-0">
+            <ScrollArea className="h-full p-4" viewportRef={atScrollRef}>
+              <BookList 
+                books={oldTestamentBooks} 
+                selectedBook={selectedBook} 
+                onBookSelect={onBookSelect} 
+                bookRefs={atBookRefs}
+                highlightCounts={highlightCounts}
+                onShowHighlights={onShowHighlights}
+              />
+            </ScrollArea>
+          </TabsContent>
+          <TabsContent value="nuevo" className="h-full mt-0">
+            <ScrollArea className="h-full p-4" viewportRef={ntScrollRef}>
+              <BookList 
+                books={newTestamentBooks} 
+                selectedBook={selectedBook} 
+                onBookSelect={onBookSelect} 
+                bookRefs={ntBookRefs}
+                highlightCounts={highlightCounts}
+                onShowHighlights={onShowHighlights}
+              />
+            </ScrollArea>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

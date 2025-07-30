@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Book, VerseData, BibleVersion } from '@/lib/bible-data'
 import { getBibleVersions, getBibleBooks } from '@/lib/bible-data'
-import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb } from '@/lib/db';
+import { getChapterFromDb, saveChapterToDb, isVersionDownloaded, deleteVersionFromDb, getAllHighlightedVerses, HighlightedVerse, saveHighlightedVerse, removeHighlightedVerse, getHighlightForVerse, getHighlightedVersesForBook } from '@/lib/db';
 import { AppHeader } from '@/components/bible/header'
 import { BookSelector } from '@/components/bible/book-selector'
 import { ChapterViewer } from '@/components/bible/chapter-viewer'
@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
 import { LoadingAnimation } from '@/components/bible/loading-animation';
+import { HighlightedVersesDialog } from '@/components/bible/highlighted-verses-dialog';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
@@ -31,6 +32,9 @@ export default function Home() {
   const [selectedVerse, setSelectedVerse] = useState<SelectedVerse | null>(null);
   const [isCompareOpen, setCompareOpen] = useState(false);
   const [isConcordanceOpen, setConcordanceOpen] = useState(false);
+  const [isHighlightsOpen, setHighlightsOpen] = useState(false);
+  const [bookForHighlights, setBookForHighlights] = useState<Book | null>(null);
+
   const [isChapterSelectorOpen, setChapterSelectorOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
   
@@ -44,12 +48,19 @@ export default function Home() {
   const chapterViewerRef = useRef<HTMLDivElement>(null);
   const [comparisonVersions, setComparisonVersions] = useState<string[]>([]);
 
+  const [highlightedVerses, setHighlightedVerses] = useState<HighlightedVerse[]>([]);
+
 
   const { toast } = useToast();
 
+  const fetchHighlightedVerses = useCallback(async () => {
+    const highlights = await getAllHighlightedVerses();
+    setHighlightedVerses(highlights);
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
-      const [fetchedVersions, fetchedBooks] = await Promise.all([getBibleVersions(), getBibleBooks()]);
+      const [fetchedVersions, fetchedBooks] = await Promise.all([getBibleVersions(), getBibleBooks(), fetchHighlightedVerses()]);
       setVersions(fetchedVersions);
       setBooks(fetchedBooks);
 
@@ -59,7 +70,7 @@ export default function Home() {
       }
     }
     fetchData();
-  }, []);
+  }, [fetchHighlightedVerses]);
 
   // Effect to run on client-side mount
   useEffect(() => {
@@ -313,6 +324,44 @@ export default function Home() {
     });
   };
 
+  const handleHighlight = async (verseInfo: SelectedVerse, color: string | null) => {
+    const { book, chapter, verse, text, version } = verseInfo;
+    if (color) {
+      await saveHighlightedVerse({ book, chapter, verse, text, color, version });
+    } else {
+      await removeHighlightedVerse(version, book, chapter, verse);
+    }
+    fetchHighlightedVerses(); // Refresh highlights
+  };
+
+  const handleShowHighlights = (selectedBook: Book) => {
+    setBookForHighlights(selectedBook);
+    setHighlightsOpen(true);
+  }
+
+  const handleNavigateToHighlight = (highlight: HighlightedVerse) => {
+    const targetBook = books.find(b => b.name === highlight.book);
+    if (targetBook) {
+        setBook(targetBook);
+        setChapter(highlight.chapter);
+        setHighlightsOpen(false);
+        if(isMobile) {
+            setMobileView('reading');
+        }
+        
+        setTimeout(() => {
+            const verseElement = document.getElementById(`verse-${highlight.chapter}-${highlight.verse}`);
+            if (verseElement && chapterViewerRef.current) {
+                chapterViewerRef.current.scrollTo({ 
+                    top: verseElement.offsetTop - chapterViewerRef.current.offsetTop, 
+                    behavior: 'smooth' 
+                });
+            }
+        }, 500); // Delay to allow chapter to render
+    }
+  };
+
+
   if (!isClient) {
     return <LoadingAnimation />;
   }
@@ -325,6 +374,11 @@ export default function Home() {
   const showMobileReadingView = isMobile && mobileView === 'reading' && showReadingView;
 
   const versionsForComparison = versions.filter(v => comparisonVersions.includes(v.abbreviation));
+
+  const highlightCounts = books.reduce((acc, book) => {
+    acc[book.name] = highlightedVerses.filter(h => h.book === book.name).length;
+    return acc;
+  }, {} as Record<string, number>);
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
@@ -346,9 +400,9 @@ export default function Home() {
         onToggleComparisonVersion={handleToggleComparisonVersion}
       />
       <main className="flex-1 flex overflow-hidden">
-        <div className="flex flex-col lg:flex-row gap-8 w-full h-full p-4 sm:p-6 lg:p-8 lg:items-start">
+        <div className="flex flex-col lg:flex-row gap-8 w-full h-full p-4 sm:p-6 lg:p-8">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4 h-full",
+            "w-full lg:w-1/3 xl:w-1/4 h-full pt-1",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
@@ -356,6 +410,8 @@ export default function Home() {
               newTestamentBooks={newTestamentBooks}
               selectedBook={book}
               onBookSelect={handleBookSelect}
+              highlightCounts={highlightCounts}
+              onShowHighlights={handleShowHighlights}
             />
           </aside>
           
@@ -373,6 +429,8 @@ export default function Home() {
                   isLoading={isLoading}
                   onCompareVerse={handleCompare}
                   onConcordance={handleConcordance}
+                  onHighlight={handleHighlight}
+                  getHighlightForVerse={getHighlightForVerse}
                   onNextChapter={handleNextChapter}
                   onPreviousChapter={handlePreviousChapter}
                   onChapterSelect={() => setChapterSelectorOpen(true)}
@@ -416,6 +474,16 @@ export default function Home() {
           selectedChapter={chapter}
           onGoBack={handleBackToBooks}
         />
+      )}
+
+      {bookForHighlights && (
+         <HighlightedVersesDialog
+            isOpen={isHighlightsOpen}
+            onOpenChange={setHighlightsOpen}
+            book={bookForHighlights}
+            getHighlightedVersesForBook={getHighlightedVersesForBook}
+            onNavigate={handleNavigateToHighlight}
+         />
       )}
     </div>
   )
