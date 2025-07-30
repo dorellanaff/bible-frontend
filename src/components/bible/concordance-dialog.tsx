@@ -132,9 +132,6 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Concordancia Bíblica</DialogTitle>
-          <DialogDescription>
-            {toTitleCase(book)} {chapter}:{verse}
-          </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">
