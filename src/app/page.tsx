@@ -353,7 +353,7 @@ export default function Home() {
       <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-8 h-full">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-20 lg:self-start h-full",
+            "w-full lg:w-1/3 xl:w-1/4 h-full",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
@@ -432,3 +432,4 @@ export default function Home() {
     
 
     
+
