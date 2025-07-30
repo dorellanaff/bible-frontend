@@ -60,9 +60,12 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
           
           if (response.ok) {
               const data = await response.json();
-              chapterData = data.chapter?.[0]?.number || [];
-              await saveChapterToDb(version, book, chapter, chapterData!);
-              return chapterData;
+              const verses = data.chapter?.[0]?.number;
+              if (Array.isArray(verses)) {
+                chapterData = verses;
+                await saveChapterToDb(version, book, chapter, chapterData);
+                return chapterData;
+              }
           }
       } catch (e) {
           console.error(`Failed to fetch chapter for concordance: ${version} ${book.name} ${chapter}`, e);
