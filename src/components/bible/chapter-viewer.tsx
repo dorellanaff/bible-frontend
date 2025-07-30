@@ -62,7 +62,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [highlightedVersesMap, setHighlightedVersesMap] = React.useState<Record<string, HighlightedVerse | undefined>>({});
 
-  const [openMenuIndex, setOpenMenuIndex] = React.useState<number | null>(null);
+  const [openMenuVerse, setOpenMenuVerse] = React.useState<number | null>(null);
   const longPressTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const isScrollingRef = React.useRef(false);
   const [selectedVerseNumbers, setSelectedVerseNumbers] = React.useState<Set<number>>(new Set());
@@ -162,15 +162,26 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   
   const handleShare = async () => {
     if (selectedVerseNumbers.size === 0) return;
+
+    const sortedVerses = Array.from(selectedVerseNumbers).sort((a, b) => a - b);
     
-    const versesToShare = Array.from(selectedVerseNumbers).sort((a, b) => a - b).map(verseNumber => {
+    const versesToShare = sortedVerses.map(verseNumber => {
         const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
         return verseData ? verseData.text : '';
     }).filter(Boolean);
 
-    const firstVerse = Math.min(...Array.from(selectedVerseNumbers));
-    const lastVerse = Math.max(...Array.from(selectedVerseNumbers));
-    const verseRange = firstVerse === lastVerse ? firstVerse : `${firstVerse}-${lastVerse}`;
+    const firstVerse = sortedVerses[0];
+    const lastVerse = sortedVerses[sortedVerses.length - 1];
+    const areContiguous = lastVerse - firstVerse === sortedVerses.length - 1;
+
+    let verseRange = '';
+    if (sortedVerses.length === 1) {
+        verseRange = `${firstVerse}`;
+    } else if (areContiguous) {
+        verseRange = `${firstVerse}-${lastVerse}`;
+    } else {
+        verseRange = sortedVerses.join(', ');
+    }
     
     const shareText = `${book.name} ${chapter}:${verseRange} (${version})\n\n"${versesToShare.join(' ')}"`;
     
@@ -186,26 +197,22 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             toast({
               variant: "destructive",
               title: "Error",
-              description: "No se pudo compartir el versículo.",
+              description: "No se pudo compartir el/los versículo(s).",
             });
         }
       }
     } else {
-        const textToCopy = Array.from(selectedVerseNumbers).sort((a,b) => a - b).map(verseNumber => {
-            const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
-            return verseData ? `${book.name} ${chapter}:${verseData.number} - ${verseData.text}` : '';
-        }).filter(Boolean).join('\n\n');
-
-        navigator.clipboard.writeText(textToCopy);
+        navigator.clipboard.writeText(shareText);
         toast({
             title: "Copiado al portapapeles",
-            description: "La función de compartir no está disponible en tu navegador. El/los versículo(s) han sido copiados.",
+            description: "La función de compartir no está disponible en tu navegador. El contenido ha sido copiado.",
         });
     }
     setSelectedVerseNumbers(new Set()); // Clear selection
   };
 
-  const handleAction = (verseData: VerseData, action: (verse: SelectedVerse) => void) => {
+
+  const handleSingleVerseAction = (verseData: VerseData, action: (verse: SelectedVerse) => void) => {
     if(verseData.type !== 'verse') return;
     action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
   }
@@ -215,7 +222,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     const versesToHighlight = Array.from(selectedVerseNumbers).map(verseNumber => {
         return content.find(v => v.type === 'verse' && v.number === verseNumber);
-    }).filter((v): v is VerseData => !!v);
+    }).filter((v): v is VerseData & { type: 'verse' } => !!v && v.type === 'verse');
 
     versesToHighlight.forEach(verseData => {
         const verseInfo = { book: book.name, chapter, verse: verseData.number, text: verseData.text, version };
@@ -228,11 +235,15 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     setSelectedVerseNumbers(new Set()); // Clear selection after highlighting
   }
 
-  const onVerseTouchStart = (index: number) => {
+  const onVerseTouchStart = (verseNumber: number) => {
     isScrollingRef.current = false;
     longPressTimeoutRef.current = setTimeout(() => {
         if (!isScrollingRef.current) {
-            setOpenMenuIndex(index);
+            // Ensure the verse being long-pressed is part of the selection
+            if (!selectedVerseNumbers.has(verseNumber)) {
+                setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
+            }
+            setOpenMenuVerse(verseNumber);
         }
         longPressTimeoutRef.current = null;
     }, 500);
@@ -263,25 +274,17 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }
   };
 
-  const handleMenuOpen = (index: number, open: boolean) => {
-    if (isScrollingRef.current && open) {
-      return;
+  const handleMenuOpen = (verseNumber: number, open: boolean) => {
+    if (open) {
+      // Ensure verse is selected when menu is opened (e.g., via right-click)
+      if (!selectedVerseNumbers.has(verseNumber)) {
+          setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
+      }
+      setOpenMenuVerse(verseNumber);
+    } else {
+      setOpenMenuVerse(null);
     }
-    setOpenMenuIndex(open ? index : null);
   };
-
-  const handleVerseClick = (verseNumber: number) => {
-    // For desktop clicks
-     setSelectedVerseNumbers(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(verseNumber)) {
-            newSet.delete(verseNumber);
-        } else {
-            newSet.add(verseNumber);
-        }
-        return newSet;
-    });
-  }
   
   const renderVerse = (verseData: VerseData, index: number) => {
     const key = `${verseData.type}-${verseData.number}-${index}`;
@@ -295,23 +298,19 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     return (
        <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
-        <DropdownMenu open={openMenuIndex === index} onOpenChange={(open) => handleMenuOpen(index, open)}>
+        <DropdownMenu open={openMenuVerse === verseData.number} onOpenChange={(open) => handleMenuOpen(verseData.number, open)}>
           <DropdownMenuTrigger asChild>
             <span 
               className={cn("cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors", {
                 'underline decoration-primary decoration-2 underline-offset-4': isSelected
               })}
-              onTouchStart={() => onVerseTouchStart(index)}
+              onTouchStart={() => onVerseTouchStart(verseData.number)}
               onTouchMove={onVerseTouchMove}
               onTouchEnd={() => onVerseTouchEnd(verseData.number)}
-              onClick={() => handleVerseClick(verseData.number)}
+              onClick={() => onVerseTouchEnd(verseData.number)} // Emulate tap for desktop
               onContextMenu={(e) => {
                 e.preventDefault();
-                // Ensure verse is selected on right click before opening menu
-                if (!selectedVerseNumbers.has(verseData.number)) {
-                    setSelectedVerseNumbers(prev => new Set(prev).add(verseData.number));
-                }
-                handleMenuOpen(index, true);
+                handleMenuOpen(verseData.number, true);
               }}
             >
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
@@ -320,17 +319,17 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
                 <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0}>
-                    <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 0 ? `(${selectedVerseNumbers.size})` : ''}
+                    <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAction(verseData, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAction(verseData, onConcordance)} disabled={selectedVerseNumbers.size !== 1}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData, onConcordance)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                 </DropdownMenuItem>
                 <DropdownMenuSub>
                     <DropdownMenuSubTrigger disabled={selectedVerseNumbers.size === 0}>
-                        <Heart className="mr-2 h-4 w-4" /> Resaltar {selectedVerseNumbers.size > 0 ? `(${selectedVerseNumbers.size})` : ''}
+                        <Heart className="mr-2 h-4 w-4" /> Resaltar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
                         <DropdownMenuSubContent>
@@ -349,7 +348,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
                 </DropdownMenuSub>
                  <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleShare} disabled={selectedVerseNumbers.size === 0}>
-                    <Share2 className="mr-2 h-4 w-4" /> Compartir {selectedVerseNumbers.size > 0 ? `(${selectedVerseNumbers.size})` : ''}
+                    <Share2 className="mr-2 h-4 w-4" /> Compartir {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -370,7 +369,9 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
              className="font-headline text-3xl md:text-4xl flex items-center gap-2"
           >
             <span>{book.name}</span>
-            <span>{chapter}</span>
+            <Button variant="ghost" onClick={onChapterSelect} className="font-headline font-bold text-3xl md:text-4xl p-1 h-auto flex items-center gap-1">
+                <span>{chapter}</span>
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
