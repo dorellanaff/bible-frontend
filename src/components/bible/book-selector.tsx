@@ -45,8 +45,8 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   ntBookRefs.current = newTestamentBooks.map((_, i) => ntBookRefs.current[i] ?? React.createRef<HTMLButtonElement>() as any);
 
 
-  const [touchStart, setTouchStart] = React.useState(0);
-  const [touchEnd, setTouchEnd] = React.useState(0);
+  const [touchStart, setTouchStart] = React.useState<{ x: number, y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = React.useState<{ x: number, y: number } | null>(null);
   const minSwipeDistance = 50;
 
   React.useEffect(() => {
@@ -68,26 +68,33 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(0); // Reset touch end
-    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEnd(null); // Reset touch end
+    setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    setTouchEnd({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
   };
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+
+    const xDist = touchStart.x - touchEnd.x;
+    const yDist = touchStart.y - touchEnd.y;
+
+    // Only consider it a swipe if the horizontal movement is greater than the vertical movement
+    if (Math.abs(xDist) < Math.abs(yDist) || Math.abs(xDist) < minSwipeDistance) {
+      return;
+    }
+
+    const isLeftSwipe = xDist > 0;
 
     if (isLeftSwipe) {
       // Swipe Left -> New Testament
       if (activeTab === 'antiguo') {
         handleTabChange('nuevo');
       }
-    } else if (isRightSwipe) {
+    } else {
       // Swipe Right -> Old Testament
       if (activeTab === 'nuevo') {
         handleTabChange('antiguo');
