@@ -155,8 +155,8 @@ export default function Home() {
 
     const fetchChapterContent = async () => {
       setIsLoading(true);
-      setChapterContent([]); // Clear previous content
-      window.scrollTo(0, 0); // Scroll to top on new chapter/version
+      setChapterContent([]);
+      window.scrollTo(0, 0);
 
       try {
         const dbContent = await getChapterFromDb(version, book, chapter);
@@ -418,5 +418,6 @@ export default function Home() {
     </div>
   )
 }
+    
 
     
