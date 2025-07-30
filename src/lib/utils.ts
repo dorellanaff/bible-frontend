@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function toTitleCase(str: string) {
   if (!str) return "";
-  return str.toLowerCase().replace(/(?:^|\s)\w/g, function(match) {
-    return match.toUpperCase();
-  });
+  // Capitalize the first letter and leave the rest as is.
+  // This avoids lower-casing accented characters like in "Éxodo".
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
