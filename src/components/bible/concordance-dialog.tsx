@@ -58,12 +58,12 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
       }
       try {
           const bookName = book.name.toLowerCase().replace(/ /g, '');
-          const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
+          const apiVersion = version;
           const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
           
           if (response.ok) {
               const data = await response.json();
-              const verses = data.chapter?.[0]?.number;
+              const verses = data.chapter?.[0]?.data;
               if (Array.isArray(verses)) {
                 await saveChapterToDb(version, book, chapter, verses);
                 return verses;
@@ -103,13 +103,18 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
                 }
 
                 const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
-                const verseData = chapterData?.find(v => v.type === 'verse' && v.number === refVerse);
 
-                setConcordanceItems(prev => {
-                    const newItems = [...prev];
-                    newItems[index] = { ...newItems[index], text: verseData?.text || null, loading: false };
-                    return newItems;
-                });
+                if (Array.isArray(chapterData)) {
+                    const verseData = chapterData.find(v => v.type === 'verse' && v.number === refVerse);
+                    setConcordanceItems(prev => {
+                        const newItems = [...prev];
+                        newItems[index] = { ...newItems[index], text: verseData?.text || "No se encontró el versículo.", loading: false };
+                        return newItems;
+                    });
+                } else {
+                     throw new Error("No se pudo obtener el capítulo.");
+                }
+
             } catch (error) {
                  setConcordanceItems(prev => {
                     const newItems = [...prev];
@@ -127,6 +132,9 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Concordancia Bíblica</DialogTitle>
+          <DialogDescription>
+            {toTitleCase(book)} {chapter}:{verse}
+          </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">

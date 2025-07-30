@@ -71,7 +71,7 @@ export function VerseComparisonDialog({ isOpen, onOpenChange, verseInfo, version
           verseText = verseData?.text || "No encontrado en BD.";
         } else {
             const bookName = bookObject.name.toLowerCase().replace(/ /g, '');
-            const apiVersion = version.abbreviation === 'RVR1960' ? 'RV1960' : version.abbreviation;
+            const apiVersion = version.abbreviation;
             const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
             
             if (response.ok) {

@@ -184,7 +184,7 @@ export default function Home() {
         }
 
         const bookName = book.name.toLowerCase().replace(/ /g, '');
-        const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
+        const apiVersion = version;
         const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
         
         if (!response.ok) {
