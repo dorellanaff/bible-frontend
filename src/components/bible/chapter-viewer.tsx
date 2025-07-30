@@ -63,10 +63,10 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const longPressTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [selectedVerseNumbers, setSelectedVerseNumbers] = React.useState<Set<number>>(new Set());
 
-  // Touch/Scroll detection logic
-  const touchStartPos = React.useRef<{ x: number, y: number } | null>(null);
+  const touchStartPos = React.useRef<{ x: number; y: number } | null>(null);
+  const touchEndPos = React.useRef<{ x: number; y: number } | null>(null);
   const isScrolling = React.useRef(false);
-  const SCROLL_THRESHOLD = 10; // pixels
+  const MIN_SWIPE_DISTANCE = 50;
 
 
   React.useEffect(() => {
@@ -90,49 +90,43 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.targetTouches.length > 1) return; // Ignore multi-touch gestures
-
-    isScrolling.current = false;
+    touchEndPos.current = null;
     touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
+    isScrolling.current = false;
+  };
 
-    const handleTouchMove = (moveEvent: TouchEvent) => {
-        if (!touchStartPos.current) return;
-        const moveX = moveEvent.targetTouches[0].clientX;
-        const moveY = moveEvent.targetTouches[0].clientY;
-        const xDist = Math.abs(moveX - touchStartPos.current.x);
-        const yDist = Math.abs(moveY - touchStartPos.current.y);
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    touchEndPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
 
-        if (xDist > SCROLL_THRESHOLD || yDist > SCROLL_THRESHOLD) {
-            isScrolling.current = true;
+    const yDist = Math.abs(touchEndPos.current.y - touchStartPos.current.y);
+    if (yDist > 10) {
+        isScrolling.current = true;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartPos.current || !touchEndPos.current) return;
+
+    const xDist = touchStartPos.current.x - touchEndPos.current.x;
+    const yDist = touchStartPos.current.y - touchEndPos.current.y;
+
+    if (Math.abs(xDist) > Math.abs(yDist) && Math.abs(xDist) > MIN_SWIPE_DISTANCE) {
+      if (xDist > 0) { // Swipe Left
+        if (chapter < book.chapters) {
+          setAnimationClass('animate-turn-page-out');
+          setTimeout(() => onNextChapter(), 500);
         }
-    };
-
-    const handleTouchEnd = (endEvent: TouchEvent) => {
-        document.removeEventListener('touchmove', handleTouchMove);
-        document.removeEventListener('touchend', handleTouchEnd);
-        
-        if (!touchStartPos.current || isScrolling.current) return;
-        
-        const endX = endEvent.changedTouches[0].clientX;
-        const xDist = endX - touchStartPos.current.x;
-
-        if (Math.abs(xDist) > SCROLL_THRESHOLD + 40) { // Horizontal swipe
-            if (xDist < 0) { // Swipe left
-                if (chapter < book.chapters) {
-                    setAnimationClass('animate-turn-page-out');
-                    setTimeout(() => onNextChapter(), 500);
-                }
-            } else { // Swipe right
-                if (chapter > 1) {
-                    setAnimationClass('animate-turn-page-out-reverse');
-                    setTimeout(() => onPreviousChapter(), 500);
-                }
-            }
+      } else { // Swipe Right
+        if (chapter > 1) {
+          setAnimationClass('animate-turn-page-out-reverse');
+          setTimeout(() => onPreviousChapter(), 500);
         }
-    };
+      }
+    }
 
-    document.addEventListener('touchmove', handleTouchMove);
-    document.addEventListener('touchend', handleTouchEnd);
+    touchStartPos.current = null;
+    touchEndPos.current = null;
   };
 
 
@@ -253,7 +247,6 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
   const onVerseTouchStart = (e: React.TouchEvent, verseNumber: number) => {
     isScrolling.current = false;
-    touchStartPos.current = { x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY };
     
     longPressTimeoutRef.current = setTimeout(() => {
         if (!isScrolling.current) {
@@ -264,19 +257,14 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }, 700);
   };
 
-  const onVerseTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartPos.current) return;
-    const currentY = e.targetTouches[0].clientY;
-    if (Math.abs(currentY - touchStartPos.current.y) > SCROLL_THRESHOLD) {
-      isScrolling.current = true;
-      if (longPressTimeoutRef.current) {
-          clearTimeout(longPressTimeoutRef.current);
-          longPressTimeoutRef.current = null;
-      }
+  const onVerseTouchMove = () => {
+    if (longPressTimeoutRef.current) {
+        clearTimeout(longPressTimeoutRef.current);
+        longPressTimeoutRef.current = null;
     }
   };
 
-  const onVerseTouchEnd = (e: React.TouchEvent, verseNumber: number) => {
+  const onVerseTouchEnd = (verseNumber: number) => {
     if (longPressTimeoutRef.current) {
         clearTimeout(longPressTimeoutRef.current);
         longPressTimeoutRef.current = null;
@@ -321,8 +309,8 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               })}
               onTouchStart={(e) => onVerseTouchStart(e, verseData.number)}
               onTouchMove={onVerseTouchMove}
-              onTouchEnd={(e) => onVerseTouchEnd(e, verseData.number)}
-              onClick={(e) => {
+              onTouchEnd={() => onVerseTouchEnd(verseData.number)}
+              onClick={() => {
                  if (!('ontouchstart' in window)) { // For desktop clicks
                     setSelectedVerseNumbers(prev => {
                         const newSet = new Set(prev);
@@ -388,6 +376,8 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         { "select-none": isMobile }
       )}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       <div ref={contentRef} className={cn("w-full h-full [transform-style:preserve-3d]", animationClass)}>
         <CardHeader>
@@ -426,3 +416,5 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
+
+    
