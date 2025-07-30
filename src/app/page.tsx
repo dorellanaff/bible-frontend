@@ -351,7 +351,7 @@ export default function Home() {
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
       />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 overflow-hidden">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col lg:flex-row gap-8 h-full">
           <aside className={cn(
             "w-full lg:w-1/3 xl:w-1/4 h-full",
@@ -432,4 +432,3 @@ export default function Home() {
     
 
     
-
