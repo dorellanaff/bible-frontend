@@ -29,8 +29,8 @@ interface ChapterViewerProps {
 
 export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter, onChapterSelect }: ChapterViewerProps) {
   const { toast } = useToast()
-  const [touchStart, setTouchStart] = React.useState(0);
-  const [touchEnd, setTouchEnd] = React.useState(0);
+  const [touchStart, setTouchStart] = React.useState<{ x: number, y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = React.useState<{ x: number, y: number } | null>(null);
   const minSwipeDistance = 50;
   
   const [animationClass, setAnimationClass] = React.useState('');
@@ -38,19 +38,26 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(0);
-    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEnd(null);
+    setTouchStart({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    setTouchEnd({ x: e.targetTouches[0].clientX, y: e.targetTouches[0].clientY });
   };
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
+
+    const xDist = touchStart.x - touchEnd.x;
+    const yDist = touchStart.y - touchEnd.y;
+
+    // Only consider it a swipe if the horizontal movement is greater than the vertical movement
+    if (Math.abs(xDist) < Math.abs(yDist) || Math.abs(xDist) < minSwipeDistance) {
+      return;
+    }
+
+    const isLeftSwipe = xDist > 0;
 
     if (isLeftSwipe) {
       if (chapter < book.chapters) {
@@ -59,7 +66,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
           onNextChapter();
         }, 500);
       }
-    } else if (isRightSwipe) {
+    } else {
       if (chapter > 1) {
         setAnimationClass('animate-turn-page-out-reverse');
         setTimeout(() => {
@@ -83,7 +90,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
     }, 500); // Corresponds to animation duration
 
     return () => clearTimeout(timer);
-  }, [chapter, content]);
+  }, [chapter, content, animationClass]);
 
 
   const copyToClipboard = (text: string) => {
