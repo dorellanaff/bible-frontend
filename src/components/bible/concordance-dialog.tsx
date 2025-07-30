@@ -113,7 +113,7 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
             }
 
             const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
-            const verseData = chapterData?.find(v => v.number === refVerse && v.type === 'verse');
+            const verseData = chapterData?.find(v => v.type === 'verse' && v.number === refVerse);
 
             setConcordanceItems(prev => {
                 const newItems = [...prev];
@@ -130,7 +130,7 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Concordancia Bíblica</DialogTitle>
           <DialogDescription>
-            Referencias cruzadas para {toTitleCase(book)} {chapter}:{verse}
+            {toTitleCase(book)} {chapter}:{verse}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
