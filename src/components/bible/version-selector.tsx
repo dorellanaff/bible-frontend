@@ -23,15 +23,15 @@ interface VersionSelectorProps {
 }
 
 function VersionList({ 
-    versions, 
-    onVersionChange, 
+    versions,
+    selectedVersion,
     getButtonState,
     comparisonVersions,
     onToggleComparisonVersion,
     handleVersionSelect,
 }: {
     versions: BibleVersion[];
-    onVersionChange: (version: string) => void;
+    selectedVersion: string;
     getButtonState: (abbr: string) => React.ReactNode;
     comparisonVersions: string[];
     onToggleComparisonVersion: (abbr: string) => void;
@@ -49,7 +49,7 @@ function VersionList({
                         aria-label={`Incluir ${version.abbreviation} en comparación`}
                     />
                     <Button
-                        variant="ghost"
+                        variant={selectedVersion === version.abbreviation ? "default" : "ghost"}
                         className="w-full justify-start text-base h-auto py-3 px-2"
                         onClick={() => handleVersionSelect(version.abbreviation)}
                     >
@@ -145,7 +145,7 @@ export function VersionSelector({
   const content = (
     <VersionList 
         versions={versions} 
-        onVersionChange={onVersionChange} 
+        selectedVersion={selectedVersion}
         getButtonState={getButtonState}
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={onToggleComparisonVersion}
