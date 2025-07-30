@@ -157,6 +157,8 @@ export default function Home() {
       setIsLoading(true);
       setChapterContent([]);
       
+      chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
+
       try {
         const dbContent = await getChapterFromDb(version, book, chapter);
         if (dbContent) {
@@ -194,7 +196,6 @@ export default function Home() {
       }
     };
     
-    window.scrollTo(0, 0);
     fetchChapterContent();
     
   }, [book, chapter, version, toast]);
@@ -212,7 +213,7 @@ export default function Home() {
     if (selectedBook) {
       setChapterSelectorOpen(true);
     } else {
-       window.scrollTo(0, 0);
+       chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }
   
@@ -222,7 +223,7 @@ export default function Home() {
     if (isMobile) {
       setMobileView('reading');
     }
-    window.scrollTo(0, 0);
+    chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
   
   const handleHeaderBookSelect = () => {
@@ -359,22 +360,20 @@ export default function Home() {
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
 
-            <div className="w-full">
+            <div className="w-full" ref={chapterViewerRef}>
               {showReadingView ? (
-                <div ref={chapterViewerRef}>
-                  <ChapterViewer
-                    book={book}
-                    chapter={chapter}
-                    version={version}
-                    content={chapterContent}
-                    isLoading={isLoading}
-                    onCompareVerse={handleCompare}
-                    onConcordance={handleConcordance}
-                    onNextChapter={handleNextChapter}
-                    onPreviousChapter={handlePreviousChapter}
-                    onChapterSelect={() => setChapterSelectorOpen(true)}
-                  />
-                </div>
+                <ChapterViewer
+                  book={book}
+                  chapter={chapter}
+                  version={version}
+                  content={chapterContent}
+                  isLoading={isLoading}
+                  onCompareVerse={handleCompare}
+                  onConcordance={handleConcordance}
+                  onNextChapter={handleNextChapter}
+                  onPreviousChapter={handlePreviousChapter}
+                  onChapterSelect={() => setChapterSelectorOpen(true)}
+                />
               ) : (
                   <Card className="card-material flex items-center justify-center h-96">
                       <CardContent className="text-center text-muted-foreground p-6">
@@ -418,6 +417,8 @@ export default function Home() {
     </div>
   )
 }
+    
+
     
 
     

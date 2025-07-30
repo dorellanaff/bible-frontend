@@ -27,7 +27,7 @@ interface ChapterViewerProps {
   onChapterSelect: () => void;
 }
 
-export function ChapterViewer({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter, onChapterSelect }: ChapterViewerProps) {
+export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps>(({ book, chapter, version, content, isLoading, onCompareVerse, onConcordance, onNextChapter, onPreviousChapter, onChapterSelect }, ref) => {
   const { toast } = useToast()
   const [touchStart, setTouchStart] = React.useState<{ x: number, y: number } | null>(null);
   const [touchEnd, setTouchEnd] = React.useState<{ x: number, y: number } | null>(null);
@@ -151,6 +151,7 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
 
   return (
     <Card 
+      ref={ref}
       className="card-material overflow-hidden [perspective:1000px]"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -188,5 +189,9 @@ export function ChapterViewer({ book, chapter, version, content, isLoading, onCo
         </CardContent>
       </div>
     </Card>
-  )
-}
+  );
+});
+
+ChapterViewer.displayName = 'ChapterViewer';
+
+    
