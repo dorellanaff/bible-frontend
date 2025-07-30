@@ -120,45 +120,34 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    setTimeout(() => {
-      const scrollRef = value === 'antiguo' ? atScrollRef : ntScrollRef;
-      if (scrollRef.current) {
-        scrollRef.current.scrollTop = 0;
-      }
-    }, 0);
   };
 
   return (
-    <div className="space-y-4 sticky top-20">
-      <Card className="card-material">
+    <div className="space-y-4 h-full flex flex-col">
+      <Card className="card-material flex-shrink-0">
         <CardContent className="p-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="antiguo" className="font-headline">Antiguo</TabsTrigger>
               <TabsTrigger value="nuevo" className="font-headline">Nuevo</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="antiguo" className="mt-0">
-            </TabsContent>
-            <TabsContent value="nuevo" className="mt-0">
-            </TabsContent>
           </Tabs>
         </CardContent>
       </Card>
       
       <div 
-        className="card-material"
+        className="card-material flex-grow"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         <div className="h-full">
             {activeTab === 'antiguo' ? (
-                <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={atScrollRef}>
+                <ScrollArea className="h-full p-4" viewportRef={atScrollRef}>
                     <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
                 </ScrollArea>
             ): (
-                <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={ntScrollRef}>
+                <ScrollArea className="h-full p-4" viewportRef={ntScrollRef}>
                     <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
                 </ScrollArea>
             )}

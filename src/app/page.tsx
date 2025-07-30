@@ -162,7 +162,6 @@ export default function Home() {
       
       if (chapterViewerRef.current) {
         chapterViewerRef.current.scrollTop = 0;
-        chapterViewerRef.current.scrollIntoView({ behavior: 'smooth' });
       }
       
       try {
@@ -214,26 +213,21 @@ export default function Home() {
   }
 
   const handleBookSelect = (selectedBook: Book | null) => {
-    chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
     setBook(selectedBook)
     setChapter(null) // Reset chapter selection
     if (selectedBook) {
       setChapterSelectorOpen(true);
-    } else {
-       if (chapterViewerRef.current) {
-        chapterViewerRef.current.scrollTop = 0;
-      }
     }
   }
   
   const handleChapterSelect = (selectedChapter: number) => {
     setChapter(selectedChapter)
     setChapterSelectorOpen(false);
-    if (isMobile) {
-      setMobileView('reading');
-    }
     if (chapterViewerRef.current) {
       chapterViewerRef.current.scrollTop = 0;
+    }
+    if (isMobile) {
+      setMobileView('reading');
     }
   }
   
@@ -333,7 +327,7 @@ export default function Home() {
   const versionsForComparison = versions.filter(v => comparisonVersions.includes(v.abbreviation));
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground">
       <AppHeader 
         book={book}
         chapter={chapter}
@@ -351,7 +345,7 @@ export default function Home() {
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
       />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 flex-1 overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-8 h-full">
           <aside className={cn(
             "w-full lg:w-1/3 xl:w-1/4 h-full",
@@ -366,11 +360,11 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4 flex-grow h-full",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow h-full flex flex-col",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
 
-            <div className="w-full h-full" ref={chapterViewerRef}>
+            <div className="w-full h-full overflow-y-auto" ref={chapterViewerRef}>
               {showReadingView ? (
                 <ChapterViewer
                   book={book}
@@ -385,7 +379,7 @@ export default function Home() {
                   onChapterSelect={() => setChapterSelectorOpen(true)}
                 />
               ) : (
-                  <Card className="card-material flex items-center justify-center h-96">
+                  <Card className="card-material flex items-center justify-center h-full">
                       <CardContent className="text-center text-muted-foreground p-6">
                           <h3 className="text-2xl font-headline">Bienvenido a Biblia</h3>
                           <p className="mt-2">Por favor, selecciona un libro para comenzar a leer.</p>
@@ -432,3 +426,4 @@ export default function Home() {
     
 
     
+
