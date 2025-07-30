@@ -44,21 +44,21 @@ export function AppHeader({
   return (
     <header className="bg-card shadow-md sticky top-0 z-40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="w-1/3 flex items-center gap-2">
+        <div className="flex items-center justify-between h-16 gap-4">
+          <div className="flex-shrink-0 flex items-center gap-2">
              <VersionSelector {...versionProps} />
           </div>
           
-          <div className="w-1/3 text-center">
+          <div className="flex-1 min-w-0 text-center">
              {showReadingNav ? (
-                <div className="flex items-center justify-center gap-2">
-                  <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1">
-                      <span>{book.name}</span>
-                      <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                <div className="flex items-center justify-start sm:justify-center gap-2">
+                  <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1 whitespace-nowrap">
+                      <span className="truncate">{book.name}</span>
+                      <ChevronsUpDown className="h-4 w-4 opacity-50 flex-shrink-0" />
                   </Button>
                   <Button variant="ghost" onClick={onChapterSelect} className="font-headline font-bold text-lg p-1 h-auto flex items-center gap-1">
                       <span>{chapter}</span>
-                      <ChevronsUpDown className="h-4 w-4 opacity-50" />
+                      <ChevronsUpDown className="h-4 w-4 opacity-50 flex-shrink-0" />
                   </Button>
                 </div>
              ) : (
@@ -70,7 +70,7 @@ export function AppHeader({
              )}
           </div>
 
-          <div className="w-1/3 flex justify-end items-center gap-2">
+          <div className="flex-shrink-0 flex justify-end items-center gap-2">
             <SettingsMenu textSize={textSize} onTextSizeChange={onTextSizeChange} />
           </div>
         </div>
