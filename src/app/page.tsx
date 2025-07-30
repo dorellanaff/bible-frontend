@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawer';
 import { LoadingAnimation } from '@/components/bible/loading-animation';
 import { HighlightedVersesDialog } from '@/components/bible/highlighted-verses-dialog';
+import { InfoDialog } from '@/components/bible/info-dialog';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
 
@@ -34,6 +35,7 @@ export default function Home() {
   const [isConcordanceOpen, setConcordanceOpen] = useState(false);
   const [isHighlightsOpen, setHighlightsOpen] = useState(false);
   const [bookForHighlights, setBookForHighlights] = useState<Book | null>(null);
+  const [isInfoDialogOpen, setInfoDialogOpen] = useState(false);
 
   const [isChapterSelectorOpen, setChapterSelectorOpen] = useState(false);
   const [isClient, setIsClient] = useState(false)
@@ -369,8 +371,8 @@ export default function Home() {
         localStorage.removeItem('bible-books-cache');
 
         const [fetchedVersions, fetchedBooks] = await Promise.all([
-            getBibleVersions(), 
-            getBibleBooks()
+            getBibleVersions(true), 
+            getBibleBooks(true)
         ]);
         
         setVersions(fetchedVersions);
@@ -382,6 +384,10 @@ export default function Home() {
         toast({ variant: "destructive", title: "Error", description: "No se pudieron actualizar los datos." });
     }
   };
+
+  const handleOpenInfo = () => {
+    setInfoDialogOpen(true);
+  }
 
 
   if (!isClient || !isStateRestored) {
@@ -421,6 +427,7 @@ export default function Home() {
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
         onDataRefresh={handleDataRefresh}
+        onInfo={handleOpenInfo}
       />
       <main className="flex-1 flex overflow-hidden">
         <div className="flex flex-col lg:flex-row gap-8 w-full h-full p-4 sm:p-6 lg:p-8">
@@ -507,6 +514,7 @@ export default function Home() {
             onNavigate={handleNavigateToHighlight}
          />
       )}
+       <InfoDialog isOpen={isInfoDialogOpen} onOpenChange={setInfoDialogOpen} />
     </div>
   )
 }

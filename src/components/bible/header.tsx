@@ -24,6 +24,7 @@ interface AppHeaderProps extends Omit<VersionSelectorProps, 'selectedVersion' | 
   onVersionChange: (version: string) => void;
   readingProgress: number;
   onDataRefresh: () => void;
+  onInfo: () => void;
 }
 
 export function AppHeader({ 
@@ -35,6 +36,7 @@ export function AppHeader({
   onChapterSelect,
   readingProgress, 
   onDataRefresh,
+  onInfo,
   ...versionProps 
 }: AppHeaderProps) {
   const isMobile = useIsMobile();
@@ -71,7 +73,7 @@ export function AppHeader({
           </div>
 
           <div className="flex-shrink-0 flex justify-end items-center gap-2">
-            <SettingsMenu textSize={textSize} onTextSizeChange={onTextSizeChange} onDataRefresh={onDataRefresh} />
+            <SettingsMenu textSize={textSize} onTextSizeChange={onTextSizeChange} onDataRefresh={onDataRefresh} onInfo={onInfo} />
           </div>
         </div>
       </div>

@@ -6,15 +6,17 @@ export interface BibleVersion {
     abbreviation: string;
 }
 
-export async function getBibleVersions(): Promise<BibleVersion[]> {
+export async function getBibleVersions(forceRefresh = false): Promise<BibleVersion[]> {
     const cacheKey = 'bible-versions-cache';
-    try {
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-            return JSON.parse(cachedData);
+    if (!forceRefresh) {
+        try {
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                return JSON.parse(cachedData);
+            }
+        } catch (error) {
+            console.error("Error reading versions from cache:", error);
         }
-    } catch (error) {
-        console.error("Error reading versions from cache:", error);
     }
     
     try {
@@ -44,15 +46,17 @@ export interface Book {
   testament: "AT" | "NT";
 }
 
-export async function getBibleBooks(): Promise<Book[]> {
+export async function getBibleBooks(forceRefresh = false): Promise<Book[]> {
     const cacheKey = 'bible-books-cache';
-    try {
-        const cachedData = localStorage.getItem(cacheKey);
-        if (cachedData) {
-            return JSON.parse(cachedData);
+    if (!forceRefresh) {
+        try {
+            const cachedData = localStorage.getItem(cacheKey);
+            if (cachedData) {
+                return JSON.parse(cachedData);
+            }
+        } catch (error) {
+            console.error("Error reading books from cache:", error);
         }
-    } catch (error) {
-        console.error("Error reading books from cache:", error);
     }
     
     try {
