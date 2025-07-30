@@ -143,23 +143,41 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   }, [chapter, content, animationClass]);
 
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = () => {
+    if (selectedVerseNumbers.size === 0) return;
+
+    const versesToCopy = Array.from(selectedVerseNumbers).sort((a,b) => a - b).map(verseNumber => {
+      const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
+      return verseData ? `${book.name} ${chapter}:${verseData.number} - ${verseData.text}` : '';
+    }).filter(Boolean);
+
+    const textToCopy = versesToCopy.join('\n\n');
+    navigator.clipboard.writeText(textToCopy);
     toast({
       title: "Copiado",
-      description: "Versículo copiado al portapapeles.",
-    })
+      description: `${selectedVerseNumbers.size} versículo(s) copiado(s) al portapapeles.`,
+    });
+    setSelectedVerseNumbers(new Set()); // Clear selection
   }
   
-  const handleShare = async (verseData: VerseData) => {
-    if (verseData.type !== 'verse') return;
+  const handleShare = async () => {
+    if (selectedVerseNumbers.size === 0) return;
+    
+    const versesToShare = Array.from(selectedVerseNumbers).sort((a, b) => a - b).map(verseNumber => {
+        const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
+        return verseData ? verseData.text : '';
+    }).filter(Boolean);
 
-    const shareText = `${book.name} ${chapter}:${verseData.number} (${version})\n\n"${verseData.text}"`;
+    const firstVerse = Math.min(...Array.from(selectedVerseNumbers));
+    const lastVerse = Math.max(...Array.from(selectedVerseNumbers));
+    const verseRange = firstVerse === lastVerse ? firstVerse : `${firstVerse}-${lastVerse}`;
+    
+    const shareText = `${book.name} ${chapter}:${verseRange} (${version})\n\n"${versesToShare.join(' ')}"`;
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${book.name} ${chapter}:${verseData.number}`,
+          title: `${book.name} ${chapter}:${verseRange}`,
           text: shareText,
         });
       } catch (error) {
@@ -173,12 +191,18 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         }
       }
     } else {
-      copyToClipboard(shareText)
-      toast({
-        title: "Copiado al portapapeles",
-        description: "La función de compartir no está disponible en tu navegador. El versículo ha sido copiado.",
-      });
+        const textToCopy = Array.from(selectedVerseNumbers).sort((a,b) => a - b).map(verseNumber => {
+            const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
+            return verseData ? `${book.name} ${chapter}:${verseData.number} - ${verseData.text}` : '';
+        }).filter(Boolean).join('\n\n');
+
+        navigator.clipboard.writeText(textToCopy);
+        toast({
+            title: "Copiado al portapapeles",
+            description: "La función de compartir no está disponible en tu navegador. El/los versículo(s) han sido copiados.",
+        });
     }
+    setSelectedVerseNumbers(new Set()); // Clear selection
   };
 
   const handleAction = (verseData: VerseData, action: (verse: SelectedVerse) => void) => {
@@ -186,20 +210,30 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
   }
 
-  const handleHighlightClick = (verseData: VerseData, color: string | null) => {
-    if (verseData.type !== 'verse') return;
-    const verseInfo = { book: book.name, chapter, verse: verseData.number, text: verseData.text, version };
-    onHighlight(verseInfo, color);
-    setHighlightedVersesMap(prev => ({
-        ...prev,
-        [`${chapter}-${verseData.number}`]: color ? { ...verseInfo, color, id: '', createdAt: new Date() } : undefined
-    }));
+  const handleHighlightClick = (color: string | null) => {
+    if (selectedVerseNumbers.size === 0) return;
+
+    const versesToHighlight = Array.from(selectedVerseNumbers).map(verseNumber => {
+        return content.find(v => v.type === 'verse' && v.number === verseNumber);
+    }).filter((v): v is VerseData => !!v);
+
+    versesToHighlight.forEach(verseData => {
+        const verseInfo = { book: book.name, chapter, verse: verseData.number, text: verseData.text, version };
+        onHighlight(verseInfo, color);
+        setHighlightedVersesMap(prev => ({
+            ...prev,
+            [`${chapter}-${verseData.number}`]: color ? { ...verseInfo, color, id: '', createdAt: new Date() } : undefined
+        }));
+    });
+    setSelectedVerseNumbers(new Set()); // Clear selection after highlighting
   }
 
   const onVerseTouchStart = (index: number) => {
     isScrollingRef.current = false;
     longPressTimeoutRef.current = setTimeout(() => {
-        setOpenMenuIndex(index);
+        if (!isScrollingRef.current) {
+            setOpenMenuIndex(index);
+        }
         longPressTimeoutRef.current = null;
     }, 500);
   };
@@ -273,6 +307,10 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               onClick={() => handleVerseClick(verseData.number)}
               onContextMenu={(e) => {
                 e.preventDefault();
+                // Ensure verse is selected on right click before opening menu
+                if (!selectedVerseNumbers.has(verseData.number)) {
+                    setSelectedVerseNumbers(prev => new Set(prev).add(verseData.number));
+                }
                 handleMenuOpen(index, true);
               }}
             >
@@ -281,42 +319,37 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
-                <DropdownMenuItem onClick={() => copyToClipboard(`${book.name} ${chapter}:${verseData.number} - ${verseData.text} (${version})`)}>
-                    <Copy className="mr-2 h-4 w-4" /> Copiar
+                <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0}>
+                    <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 0 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAction(verseData, onCompareVerse)}>
+                <DropdownMenuItem onClick={() => handleAction(verseData, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleAction(verseData, onConcordance)}>
+                <DropdownMenuItem onClick={() => handleAction(verseData, onConcordance)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                 </DropdownMenuItem>
                 <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                        <Heart className="mr-2 h-4 w-4" /> Resaltar
+                    <DropdownMenuSubTrigger disabled={selectedVerseNumbers.size === 0}>
+                        <Heart className="mr-2 h-4 w-4" /> Resaltar {selectedVerseNumbers.size > 0 ? `(${selectedVerseNumbers.size})` : ''}
                     </DropdownMenuSubTrigger>
                     <DropdownMenuPortal>
                         <DropdownMenuSubContent>
                             {HIGHLIGHT_COLORS.map(c => (
-                                <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(verseData, highlight?.color === c.color ? null : c.color)}>
+                                <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(c.color)}>
                                     <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: c.color }} />
                                     {c.name}
-                                    {highlight?.color === c.color && <Check className="ml-auto h-4 w-4" />}
                                 </DropdownMenuItem>
                             ))}
-                             {highlight && (
-                                <>
-                                 <DropdownMenuSeparator />
-                                 <DropdownMenuItem onClick={() => handleHighlightClick(verseData, null)}>
-                                    Quitar resaltado
-                                 </DropdownMenuItem>
-                                </>
-                            )}
+                             <DropdownMenuSeparator />
+                             <DropdownMenuItem onClick={() => handleHighlightClick(null)}>
+                                Quitar resaltado
+                             </DropdownMenuItem>
                         </DropdownMenuSubContent>
                     </DropdownMenuPortal>
                 </DropdownMenuSub>
                  <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleShare(verseData)}>
-                    <Share2 className="mr-2 h-4 w-4" /> Compartir
+                <DropdownMenuItem onClick={handleShare} disabled={selectedVerseNumbers.size === 0}>
+                    <Share2 className="mr-2 h-4 w-4" /> Compartir {selectedVerseNumbers.size > 0 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
