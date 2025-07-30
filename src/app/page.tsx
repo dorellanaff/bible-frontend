@@ -124,12 +124,11 @@ export default function Home() {
   // Effect for scroll progress
   useEffect(() => {
     const handleScroll = () => {
-        const contentElement = chapterViewerRef.current;
-        if (!contentElement) return;
+        if (!chapterViewerRef.current) return;
 
-        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        const contentElement = chapterViewerRef.current;
+        const { scrollTop, scrollHeight, clientHeight } = contentElement;
         
-        // Use documentElement for overall page scroll
         const totalScrollableHeight = scrollHeight - clientHeight;
         
         if (totalScrollableHeight > 0) {
@@ -140,13 +139,17 @@ export default function Home() {
         }
     };
     
-    window.addEventListener('scroll', handleScroll);
-    
-    // Recalculate on chapter change
-    handleScroll();
+    const contentElement = chapterViewerRef.current;
+    if (contentElement) {
+        contentElement.addEventListener('scroll', handleScroll);
+        // Recalculate on chapter change
+        handleScroll();
+    }
 
     return () => {
-        window.removeEventListener('scroll', handleScroll);
+        if (contentElement) {
+            contentElement.removeEventListener('scroll', handleScroll);
+        }
     };
   }, [chapterContent]);
 
@@ -157,8 +160,10 @@ export default function Home() {
       setIsLoading(true);
       setChapterContent([]);
       
-      chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
-
+      if (chapterViewerRef.current) {
+        chapterViewerRef.current.scrollTop = 0;
+      }
+      
       try {
         const dbContent = await getChapterFromDb(version, book, chapter);
         if (dbContent) {
@@ -213,7 +218,9 @@ export default function Home() {
     if (selectedBook) {
       setChapterSelectorOpen(true);
     } else {
-       chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
+       if (chapterViewerRef.current) {
+        chapterViewerRef.current.scrollTop = 0;
+      }
     }
   }
   
@@ -223,12 +230,14 @@ export default function Home() {
     if (isMobile) {
       setMobileView('reading');
     }
-    chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chapterViewerRef.current) {
+      chapterViewerRef.current.scrollTop = 0;
+    }
   }
   
   const handleHeaderBookSelect = () => {
     if (isMobile) {
-      setMobileView('selection');
+      setMobileView(prev => prev === 'reading' ? 'selection' : 'reading');
     }
   }
   
@@ -340,10 +349,10 @@ export default function Home() {
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
       />
-      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 lg:p-8 overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-8 h-full">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-24 lg:self-start",
+            "w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-24 lg:self-start h-full",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
@@ -355,13 +364,14 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4 flex-grow",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow h-full",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
 
-            <div className="w-full" ref={chapterViewerRef}>
+            <div className="w-full h-full" >
               {showReadingView ? (
                 <ChapterViewer
+                  ref={chapterViewerRef}
                   book={book}
                   chapter={chapter}
                   version={version}
