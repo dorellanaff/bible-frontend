@@ -113,7 +113,7 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
             } catch (error) {
                  setConcordanceItems(prev => {
                     const newItems = [...prev];
-                    const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+                    const errorMessage = "No se pudo cargar el texto.";
                     newItems[index] = { ...newItems[index], text: errorMessage, loading: false };
                     return newItems;
                 });
@@ -127,9 +127,6 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Concordancia Bíblica</DialogTitle>
-          <DialogDescription>
-            {toTitleCase(book)} {chapter}:{verse}
-          </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
             <div className="grid gap-4 py-4">
