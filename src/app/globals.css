@@ -106,3 +106,12 @@ body {
     @apply w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin;
   }
 }
+
+@media (max-width: 1023px) {
+  body {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+}
