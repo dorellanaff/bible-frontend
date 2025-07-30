@@ -195,7 +195,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     const highlightClass = highlight ? HIGHLIGHT_COLORS.find(c => c.color === highlight.color)?.className : '';
 
     return (
-       <p key={key} className={cn("leading-relaxed inline", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
+       <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <span className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors">
@@ -290,5 +290,3 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
-
-    
