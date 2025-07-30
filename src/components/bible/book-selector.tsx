@@ -24,7 +24,7 @@ function BookList({ books, selectedBook, onBookSelect, bookRefs }: { books: Book
           ref={el => bookRefs.current[index] = el}
           variant={selectedBook?.name === book.name ? 'default' : 'secondary'}
           onClick={() => onBookSelect(book)}
-          className="font-headline justify-start text-lg py-3 h-auto"
+          className="font-headline justify-start text-lg py-3 h-auto w-full"
         >
           {book.name}
         </Button>
@@ -133,17 +133,17 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
                 <TabsTrigger value="nuevo" className="font-headline text-lg">Nuevo</TabsTrigger>
                 </TabsList>
                 <div 
-                    className="flex-grow h-full overflow-y-auto mt-4"
+                    className="flex-grow h-full mt-4"
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
                 >
-                    <TabsContent value="antiguo">
+                    <TabsContent value="antiguo" className="h-full">
                         <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={atScrollRef}>
                             <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
                         </ScrollArea>
                     </TabsContent>
-                    <TabsContent value="nuevo">
+                    <TabsContent value="nuevo" className="h-full">
                         <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={ntScrollRef}>
                             <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
                         </ScrollArea>

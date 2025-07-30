@@ -62,9 +62,9 @@ export function ChapterSelectorDrawer({ book, isOpen, onOpenChange, onChapterSel
                 <Button
                   key={chapter}
                   ref={el => chapterRefs.current[index] = el}
-                  variant={selectedChapter === chapter ? 'default' : 'outline'}
+                  variant={selectedChapter === chapter ? 'default' : 'secondary'}
                   onClick={() => onChapterSelect(chapter)}
-                  className="w-full justify-center text-lg py-3 h-auto"
+                  className="w-full justify-start text-lg py-3 h-auto font-headline"
                 >
                   Capítulo {chapter}
                 </Button>
