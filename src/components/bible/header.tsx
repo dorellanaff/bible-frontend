@@ -18,7 +18,6 @@ interface AppHeaderProps extends Omit<VersionSelectorProps, 'selectedVersion' | 
   chapter: number | null;
   textSize: number;
   onTextSizeChange: (size: number) => void;
-  isReading?: boolean;
   onBookSelect: () => void;
   onChapterSelect: () => void;
   selectedVersion: string;
@@ -31,7 +30,6 @@ export function AppHeader({
   chapter,
   textSize, 
   onTextSizeChange, 
-  isReading = false, 
   onBookSelect, 
   onChapterSelect,
   readingProgress, 
@@ -39,7 +37,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const isMobile = useIsMobile();
   
-  const showReadingNav = isMobile && isReading && book && chapter;
+  const showReadingNav = book && chapter;
 
   return (
     <header className="bg-card shadow-md sticky top-0 z-40">
@@ -50,7 +48,7 @@ export function AppHeader({
           </div>
           
           <div className="flex-1 min-w-0 text-center">
-             {showReadingNav ? (
+             {showReadingNav && isMobile ? (
                 <div className="flex items-center justify-start sm:justify-center gap-2">
                   <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1 whitespace-nowrap">
                       <span className="truncate">{book.name}</span>
@@ -64,7 +62,7 @@ export function AppHeader({
              ) : (
                <Link href="/" className="cursor-pointer">
                 <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground truncate">
-                  Biblia
+                  {showReadingNav ? `${book.name} ${chapter}` : 'Biblia'}
                 </h1>
                </Link>
              )}

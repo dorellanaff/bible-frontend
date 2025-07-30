@@ -328,7 +328,6 @@ export default function Home() {
         chapter={chapter}
         textSize={textSize} 
         onTextSizeChange={handleTextSizeChange} 
-        isReading={showMobileReadingView}
         onBookSelect={handleHeaderBookSelect}
         onChapterSelect={handleHeaderChapterSelect}
         versions={versions}
