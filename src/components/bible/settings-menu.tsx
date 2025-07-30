@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -41,10 +42,10 @@ export function SettingsMenu({ textSize, onTextSizeChange }: SettingsMenuProps) 
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
-        <DropdownMenuLabel>Ajustes de Lectura</DropdownMenuLabel>
+        <DropdownMenuLabel>Ajustes de lectura</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <div className="px-2 py-2">
-            <span className="text-sm font-medium text-muted-foreground">Tamaño de Fuente</span>
+            <span className="text-sm font-medium text-muted-foreground">Tamaño de la fuente</span>
             <div className="flex items-center gap-2 mt-2">
                 <Minus className="h-4 w-4" />
                 <Slider
@@ -53,13 +54,13 @@ export function SettingsMenu({ textSize, onTextSizeChange }: SettingsMenuProps) 
                     step={0.1}
                     value={[textSize]}
                     onValueChange={handleSliderChange}
-                    aria-label="Text size"
+                    aria-label="Tamaño del texto"
                 />
                 <Plus className="h-4 w-4" />
             </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Tema de la Aplicación</DropdownMenuLabel>
+        <DropdownMenuLabel>Tema de la aplicación</DropdownMenuLabel>
         <DropdownMenuItem onClick={() => setTheme("light")}>
           <Sun className="mr-2 h-4 w-4" />
           <span>Claro</span>
