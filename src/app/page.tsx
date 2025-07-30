@@ -20,7 +20,7 @@ import { LoadingAnimation } from '@/components/bible/loading-animation';
 import { HighlightedVersesDialog } from '@/components/bible/highlighted-verses-dialog';
 import { InfoDialog } from '@/components/bible/info-dialog';
 
-type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; references?: { source: string; target: string }[] };
 
 export default function Home() {
   const [versions, setVersions] = useState<BibleVersion[]>([]);
@@ -328,9 +328,9 @@ export default function Home() {
   };
 
   const handleHighlight = async (verseInfo: SelectedVerse, color: string | null) => {
-    const { book, chapter, verse, text, version } = verseInfo;
+    const { book, chapter, verse, text, version, references } = verseInfo;
     if (color) {
-      await saveHighlightedVerse({ book, chapter, verse, text, color, version });
+      await saveHighlightedVerse({ book, chapter, verse, text, color, version, references });
     } else {
       await removeHighlightedVerse(version, book, chapter, verse);
     }

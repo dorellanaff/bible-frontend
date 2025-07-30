@@ -1,3 +1,4 @@
+
 // src/lib/db.ts
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Book, VerseData } from './bible-data';
@@ -17,6 +18,7 @@ export interface HighlightedVerse {
   color: string;
   version: string;
   createdAt: Date;
+  references?: { source: string; target: string }[];
 }
 
 interface BibleDB extends DBSchema {

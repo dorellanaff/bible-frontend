@@ -1,10 +1,9 @@
+
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent } from '@/components/ui/card'
-import { useState, useEffect } from "react";
-import { VerseData } from "@/lib/bible-data";
 
 interface ConcordanceDialogProps {
   isOpen: boolean;
@@ -15,27 +14,12 @@ interface ConcordanceDialogProps {
     verse: number;
     text: string;
     version: string;
+    references?: { source: string; target: string }[];
   };
 }
 
-// Datos de ejemplo para la concordancia
-const getConcordanceData = (book: string, chapter: number, verse: number) => {
-    // Simulación: encontrar versículos que contengan la palabra "Dios" o "Señor"
-    const relatedVerses = [
-        { book: 'Juan', chapter: 3, verse: 16, text: "Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna." },
-        { book: 'Génesis', chapter: 1, verse: 1, text: "En el principio creó Dios los cielos y la tierra." },
-        { book: 'Salmos', chapter: 23, verse: 1, text: "El Señor es mi pastor, nada me falta." },
-        { book: 'Isaías', chapter: 40, verse: 31, text: "pero los que esperan en el Señor renovarán sus fuerzas." },
-    ];
-
-    return {
-        relatedVerses
-    }
-}
-
 export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: ConcordanceDialogProps) {
-  const { book, chapter, verse, text } = verseInfo;
-  const { relatedVerses } = getConcordanceData(book, chapter, verse);
+  const { book, chapter, verse, text, references = [] } = verseInfo;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -43,7 +27,7 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Concordancia Bíblica</DialogTitle>
           <DialogDescription>
-            Versículos relacionados con {book} {chapter}:{verse}
+            Referencias cruzadas para {book} {chapter}:{verse}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-6">
@@ -56,12 +40,17 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
                 </Card>
             
                 <div className="mt-4 space-y-4">
-                    {relatedVerses.map((item, index) => (
+                    {references.length > 0 ? (
+                       references.map((item, index) => (
                         <div key={index} className="p-4 rounded-lg bg-secondary/50">
-                            <h4 className="font-bold text-lg font-headline text-primary">{item.book} {item.chapter}:{item.verse}</h4>
-                            <p className="mt-1 text-readable">{item.text || "Versículo no disponible."}</p>
+                            <h4 className="font-bold text-lg font-headline text-primary">{item.target}</h4>
                         </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div className="p-4 rounded-lg bg-secondary/50 text-center text-muted-foreground">
+                        No se encontraron referencias para este versículo.
+                      </div>
+                    )}
                 </div>
             </div>
         </ScrollArea>

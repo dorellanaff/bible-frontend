@@ -2,19 +2,17 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Share2, BookCopy, Heart, Check } from 'lucide-react'
+import { BookOpen, Copy, Share2, BookCopy, Heart } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
 import { HighlightedVerse } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuPortal, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 
-type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string };
+type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; references?: { source: string; target: string }[] };
 
 interface ChapterViewerProps {
   book: Book;
@@ -222,7 +220,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const handleSingleVerseAction = (verseNumber: number, action: (verse: SelectedVerse) => void) => {
     const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
     if (!verseData) return;
-    action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
+    action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version, references: verseData.references });
     setOpenMenuVerse(null);
   }
 
@@ -234,7 +232,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     }).filter((v): v is VerseData & { type: 'verse' } => !!v && v.type === 'verse');
 
     versesToHighlight.forEach(verseData => {
-        const verseInfo = { book: book.name, chapter, verse: verseData.number, text: verseData.text, version };
+        const verseInfo = { book: book.name, chapter, verse: verseData.number, text: verseData.text, version, references: verseData.references };
         onHighlight(verseInfo, color);
         setHighlightedVersesMap(prev => ({
             ...prev,
@@ -298,6 +296,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     const highlight = highlightedVersesMap[`${chapter}-${verseData.number}`];
     const highlightClass = highlight ? HIGHLIGHT_COLORS.find(c => c.color === highlight.color)?.className : '';
     const isSelected = selectedVerseNumbers.has(verseData.number);
+    const hasReferences = verseData.references && verseData.references.length > 0;
 
     return (
        <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
@@ -306,13 +305,12 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
             <span 
               className={cn("cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors", {
                 'underline decoration-primary decoration-2 underline-offset-4': isSelected,
-                 'select-none': isMobile,
-              })}
+              }, isMobile && 'select-none')}
               onTouchStart={(e) => onVerseTouchStart(e, verseData.number)}
               onTouchMove={onVerseTouchMove}
               onTouchEnd={() => onVerseTouchEnd(verseData.number)}
               onClick={() => {
-                 if (!('ontouchstart' in window)) { // For desktop clicks
+                 if (!isMobile) { // For desktop clicks
                     setSelectedVerseNumbers(prev => {
                         const newSet = new Set(prev);
                         if (newSet.has(verseData.number)) newSet.delete(verseData.number);
@@ -328,6 +326,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               }}
             >
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
+              {hasReferences && <sup className="font-serif text-primary">a</sup>}
               {verseData.text}
             </span>
           </DropdownMenuTrigger>
@@ -338,7 +337,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
                 <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1 || !hasReferences}>
                     <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                 </DropdownMenuItem>
                 <DropdownMenuSub>

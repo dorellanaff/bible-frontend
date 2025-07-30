@@ -1,3 +1,4 @@
+
 import { API_BASE_URL } from "./api";
 
 export interface BibleVersion {
@@ -83,4 +84,8 @@ export interface VerseData {
     number: number;
     text: string;
     type: 'title' | 'verse';
+    references?: {
+        source: string;
+        target: string;
+    }[];
 }
