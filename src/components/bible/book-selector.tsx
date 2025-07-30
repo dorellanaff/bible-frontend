@@ -129,8 +129,8 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   };
 
   return (
-    <div className="space-y-4">
-      <Card className="card-material sticky top-0 z-10">
+    <div className="space-y-4 sticky top-20">
+      <Card className="card-material">
         <CardContent className="p-2">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -154,11 +154,11 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
       >
         <div className="h-full">
             {activeTab === 'antiguo' ? (
-                <ScrollArea className="h-[calc(100vh-12rem)] p-4" viewportRef={atScrollRef}>
+                <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={atScrollRef}>
                     <BookList books={oldTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={atBookRefs} />
                 </ScrollArea>
             ): (
-                <ScrollArea className="h-[calc(100vh-12rem)] p-4" viewportRef={ntScrollRef}>
+                <ScrollArea className="h-[calc(100vh-18rem)] p-4" viewportRef={ntScrollRef}>
                     <BookList books={newTestamentBooks} selectedBook={selectedBook} onBookSelect={onBookSelect} bookRefs={ntBookRefs} />
                 </ScrollArea>
             )}
