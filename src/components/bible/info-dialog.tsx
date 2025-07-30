@@ -43,21 +43,9 @@ export function InfoDialog({ isOpen, onOpenChange }: InfoDialogProps) {
 
             <div className="space-y-4">
                <div className="flex items-start gap-3">
-                  <BrainCircuit className="h-5 w-5 mt-0.5 text-primary flex-shrink-0" />
-                  <p>
-                      La interfaz de la aplicación fue generada con ayuda de IA por Firebase Genkit.
-                  </p>
-              </div>
-               <div className="flex items-start gap-3">
                   <Globe className="h-5 w-5 mt-0.5 text-primary flex-shrink-0" />
                   <p>
                       Los textos bíblicos son obtenidos desde una API pública.
-                  </p>
-              </div>
-              <div className="flex items-start gap-3">
-                  <Code className="h-5 w-5 mt-0.5 text-primary flex-shrink-0" />
-                  <p>
-                      Desarrollado con Next.js, React, Tailwind CSS y ShadCN.
                   </p>
               </div>
             </div>
@@ -66,3 +54,4 @@ export function InfoDialog({ isOpen, onOpenChange }: InfoDialogProps) {
     </Dialog>
   )
 }
+
