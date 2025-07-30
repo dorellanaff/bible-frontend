@@ -218,6 +218,7 @@ export default function Home() {
     if (selectedBook) {
       setChapterSelectorOpen(true);
     }
+    chapterViewerRef.current?.scrollIntoView({ behavior: 'smooth' });
   }
   
   const handleChapterSelect = (selectedChapter: number) => {
@@ -345,10 +346,10 @@ export default function Home() {
         comparisonVersions={comparisonVersions}
         onToggleComparisonVersion={handleToggleComparisonVersion}
       />
-      <main className="flex-1 container mx-auto p-4 sm:p-6 lg:p-8 flex overflow-hidden">
-        <div className="flex flex-col lg:flex-row gap-8 w-full">
+      <main className="flex-1 flex overflow-hidden p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col lg:flex-row gap-8 w-full h-full">
           <aside className={cn(
-            "w-full lg:w-1/3 xl:w-1/4",
+            "w-full lg:w-1/3 xl:w-1/4 h-full",
             { 'hidden lg:block': showMobileReadingView, 'block': !showMobileReadingView }
           )}>
             <BookSelector
@@ -360,10 +361,9 @@ export default function Home() {
           </aside>
           
           <section className={cn(
-            "w-full lg:w-2/3 xl:w-3/4 flex-grow flex flex-col",
+            "w-full lg:w-2/3 xl:w-3/4 flex-grow flex flex-col h-full",
             { 'hidden': showMobileSelectionView, 'block': !showMobileSelectionView }
           )}>
-
             <div className="w-full h-full overflow-y-auto" ref={chapterViewerRef}>
               {showReadingView ? (
                 <ChapterViewer
