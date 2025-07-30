@@ -105,7 +105,6 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    onBookSelect(null);
     setTimeout(() => {
       const scrollRef = value === 'antiguo' ? atScrollRef : ntScrollRef;
       if (scrollRef.current) {
