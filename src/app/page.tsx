@@ -156,8 +156,7 @@ export default function Home() {
     const fetchChapterContent = async () => {
       setIsLoading(true);
       setChapterContent([]);
-      window.scrollTo(0, 0);
-
+      
       try {
         const dbContent = await getChapterFromDb(version, book, chapter);
         if (dbContent) {
@@ -195,6 +194,7 @@ export default function Home() {
       }
     };
     
+    window.scrollTo(0, 0);
     fetchChapterContent();
     
   }, [book, chapter, version, toast]);
