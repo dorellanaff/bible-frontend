@@ -2,14 +2,14 @@
 "use client"
 
 import * as React from 'react'
-import { BookOpen, Copy, Share2, BookCopy, Heart } from 'lucide-react'
+import { BookOpen, Copy, Share2, BookCopy, Heart, ArrowLeft } from 'lucide-react'
 import type { Book, VerseData } from '@/lib/bible-data'
 import { HighlightedVerse } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn, toTitleCase } from '@/lib/utils'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSubContent } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; references?: { source: string; target: string }[] };
@@ -58,6 +58,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const [highlightedVersesMap, setHighlightedVersesMap] = React.useState<Record<string, HighlightedVerse | undefined>>({});
 
   const [openMenuVerse, setOpenMenuVerse] = React.useState<number | null>(null);
+  const [isHighlightMenuOpen, setIsHighlightMenuOpen] = React.useState(false);
   const longPressTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const [selectedVerseNumbers, setSelectedVerseNumbers] = React.useState<Set<number>>(new Set());
 
@@ -310,6 +311,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const handleMenuOpen = (verseNumber: number, open: boolean) => {
     if (!open) {
       setOpenMenuVerse(null);
+      setIsHighlightMenuOpen(false); // Reset highlight menu on close
     }
   };
   
@@ -358,39 +360,44 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               {hasReferences && <sup className="font-serif text-primary pl-1">({referenceLetter})</sup>}
             </span>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-                <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
-                    <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1} className="text-base py-3">
-                    <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1 || !hasReferences} className="text-base py-3">
-                    <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
-                </DropdownMenuItem>
-                <DropdownMenuSub>
-                    <DropdownMenuSubTrigger disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
+          <DropdownMenuContent className="w-56" align="center">
+            {isHighlightMenuOpen ? (
+                <>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => setIsHighlightMenuOpen(false)} className="text-base py-3">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Volver
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {HIGHLIGHT_COLORS.map(c => (
+                        <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(c.color)} className="text-base py-3">
+                            <div className="w-5 h-5 rounded-full mr-3 border" style={{ backgroundColor: c.color }} />
+                            {c.name}
+                        </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleHighlightClick(null)} className="text-base py-3">
+                        Quitar resaltado
+                    </DropdownMenuItem>
+                </>
+            ) : (
+                <>
+                    <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
+                        <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1} className="text-base py-3">
+                        <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1 || !hasReferences} className="text-base py-3">
+                        <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={() => setIsHighlightMenuOpen(true)} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
                         <Heart className="mr-2 h-4 w-4" /> Resaltar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                        <DropdownMenuSubContent sideOffset={8} align="center">
-                            {HIGHLIGHT_COLORS.map(c => (
-                                <DropdownMenuItem key={c.color} onClick={() => handleHighlightClick(c.color)}>
-                                    <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: c.color }} />
-                                    {c.name}
-                                </DropdownMenuItem>
-                            ))}
-                             <DropdownMenuSeparator />
-                             <DropdownMenuItem onClick={() => handleHighlightClick(null)}>
-                                Quitar resaltado
-                             </DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                </DropdownMenuSub>
-                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleShare} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
-                    <Share2 className="mr-2 h-4 w-4" /> Compartir {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
-                </DropdownMenuItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleShare} disabled={selectedVerseNumbers.size === 0} className="text-base py-3">
+                        <Share2 className="mr-2 h-4 w-4" /> Compartir {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
+                    </DropdownMenuItem>
+                </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </p>
