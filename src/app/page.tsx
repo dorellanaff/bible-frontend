@@ -71,8 +71,7 @@ export default function Home() {
       if (storedVersion) {
         setVersion(storedVersion);
       } else if (fetchedVersions.length > 0) {
-        const defaultVersion = fetchedVersions.find(v => v.abbreviation === 'NVI') || fetchedVersions[0];
-        setVersion(defaultVersion.abbreviation);
+        // No default version
       }
     }
     fetchData();
