@@ -62,6 +62,12 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [highlightedVersesMap, setHighlightedVersesMap] = React.useState<Record<string, HighlightedVerse | undefined>>({});
 
+  const [openMenuIndex, setOpenMenuIndex] = React.useState<number | null>(null);
+  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const isScrollingRef = React.useRef(false);
+  const SCROLL_THRESHOLD = 10;
+
+
   React.useEffect(() => {
     const fetchHighlights = async () => {
         if (!content || content.length === 0) return;
@@ -184,6 +190,27 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
         [`${chapter}-${verseData.number}`]: color ? { ...verseInfo, color, id: '', createdAt: new Date() } : undefined
     }));
   }
+
+  const onVerseTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    isScrollingRef.current = false;
+  };
+
+  const onVerseTouchMove = (e: React.TouchEvent) => {
+    if (isScrollingRef.current || !touchStartRef.current) return;
+    const deltaX = Math.abs(e.touches[0].clientX - touchStartRef.current.x);
+    const deltaY = Math.abs(e.touches[0].clientY - touchStartRef.current.y);
+    if (deltaX > SCROLL_THRESHOLD || deltaY > SCROLL_THRESHOLD) {
+      isScrollingRef.current = true;
+    }
+  };
+
+  const handleMenuOpen = (index: number, open: boolean) => {
+    if (isScrollingRef.current && open) {
+      return;
+    }
+    setOpenMenuIndex(open ? index : null);
+  };
   
   const renderVerse = (verseData: VerseData, index: number) => {
     const key = `${verseData.type}-${verseData.number}-${index}`;
@@ -196,9 +223,22 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     return (
        <p key={key} className={cn("leading-relaxed", highlightClass)} id={`verse-${chapter}-${verseData.number}`}>
-        <DropdownMenu>
+        <DropdownMenu open={openMenuIndex === index} onOpenChange={(open) => handleMenuOpen(index, open)}>
           <DropdownMenuTrigger asChild>
-            <span className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors">
+            <span 
+              className="cursor-pointer hover:bg-secondary/80 rounded-md p-1 transition-colors"
+              onTouchStart={onVerseTouchStart}
+              onTouchMove={onVerseTouchMove}
+              onTouchEnd={() => {
+                touchStartRef.current = null;
+              }}
+              onContextMenu={(e) => {
+                if ('ontouchstart' in window) {
+                   e.preventDefault();
+                   handleMenuOpen(index, true);
+                }
+              }}
+            >
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
               {verseData.text}
             </span>
