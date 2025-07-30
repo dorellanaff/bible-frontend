@@ -5,9 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Card, CardContent } from '@/components/ui/card'
 import { toTitleCase } from "@/lib/utils";
-import { fetchVerse } from "@/lib/api";
+import { getChapterFromDb, saveChapterToDb } from "@/lib/db";
+import { API_BASE_URL } from "@/lib/api";
 import { useState, useEffect } from "react";
 import { Skeleton } from "../ui/skeleton";
+import { getBibleBooks, Book, VerseData } from "@/lib/bible-data";
 
 interface ConcordanceDialogProps {
   isOpen: boolean;
@@ -31,9 +33,45 @@ interface ConcordanceItem {
 export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: ConcordanceDialogProps) {
   const { book, chapter, verse, text, references = [], version: currentVersion } = verseInfo;
   const [concordanceItems, setConcordanceItems] = useState<ConcordanceItem[]>([]);
+  const [books, setBooks] = useState<Book[]>([]);
 
   useEffect(() => {
-    if (!isOpen) {
+    async function loadBooks() {
+      const bibleBooks = await getBibleBooks();
+      setBooks(bibleBooks);
+    }
+    loadBooks();
+  }, []);
+
+  const getBookByName = (name: string): Book | undefined => {
+    const normalizedName = name.toUpperCase().replace(/\s+/g, '');
+    return books.find(b => b.name.toUpperCase().replace(/\s+/g, '').startsWith(normalizedName));
+  }
+  
+  const fetchChapterData = async (version: string, book: Book, chapter: number): Promise<VerseData[] | null> => {
+      let chapterData = await getChapterFromDb(version, book, chapter);
+      if (chapterData) {
+          return chapterData;
+      }
+      try {
+          const bookName = book.name.toLowerCase().replace(/ /g, '');
+          const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
+          const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+          
+          if (response.ok) {
+              const data = await response.json();
+              chapterData = data.chapter?.[0]?.number || [];
+              await saveChapterToDb(version, book, chapter, chapterData!);
+              return chapterData;
+          }
+      } catch (e) {
+          console.error(`Failed to fetch chapter for concordance: ${version} ${book.name} ${chapter}`, e);
+      }
+      return null;
+  }
+
+  useEffect(() => {
+    if (!isOpen || books.length === 0) {
         setConcordanceItems([]);
         return;
     };
@@ -42,10 +80,21 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
         setConcordanceItems(references.map(ref => ({ target: ref.target, text: null, loading: true })));
 
         references.forEach(async (ref, index) => {
-            const [bookName, chapterAndVerse] = ref.target.split(' ');
-            const [refChapter, refVerse] = chapterAndVerse.split(':').map(Number);
+            const [rawBookName, chapterAndVerse] = ref.target.split(' ');
+            const refBook = getBookByName(rawBookName);
             
-            const verseText = await fetchVerse(currentVersion, bookName, refChapter, refVerse);
+            if (!refBook || !chapterAndVerse) {
+                setConcordanceItems(prev => {
+                    const newItems = [...prev];
+                    newItems[index] = { ...newItems[index], text: "Libro no encontrado.", loading: false };
+                    return newItems;
+                });
+                return;
+            }
+
+            const [refChapter, refVerse] = chapterAndVerse.split(':').map(Number);
+            const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
+            const verseText = chapterData?.find(v => v.number === refVerse && v.type === 'verse')?.text || null;
             
             setConcordanceItems(prev => {
                 const newItems = [...prev];
@@ -54,7 +103,7 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
             });
         });
     }
-  }, [isOpen, references, currentVersion]);
+  }, [isOpen, references, currentVersion, books]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
