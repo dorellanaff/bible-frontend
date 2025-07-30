@@ -123,8 +123,8 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   };
 
   return (
-    <div className="h-full flex flex-col space-y-4">
-      <div className="sticky top-0 z-10 bg-background pt-1">
+    <div className="h-full flex flex-col">
+      <div className="sticky top-0 z-10 bg-background">
         <Card className="card-material flex-shrink-0">
             <CardContent className="p-2">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
