@@ -257,8 +257,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
       <div ref={contentRef} className={cn("w-full h-full [transform-style:preserve-3d]", animationClass)}>
         <CardHeader>
           <CardTitle 
-             className="font-headline text-3xl md:text-4xl flex items-center gap-2 cursor-pointer md:cursor-default"
-             onClick={() => onChapterSelect()}
+             className="font-headline text-3xl md:text-4xl flex items-center gap-2"
           >
             <span>{book.name}</span>
             <span>{chapter}</span>
