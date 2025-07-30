@@ -136,7 +136,7 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
       </Card>
       
       <div 
-        className="card-material flex-grow"
+        className="card-material flex-grow h-full"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
