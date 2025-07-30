@@ -172,12 +172,13 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 
     const firstVerse = sortedVerses[0];
     const lastVerse = sortedVerses[sortedVerses.length - 1];
-    const areContiguous = lastVerse - firstVerse === sortedVerses.length - 1;
+    
+    const isContiguous = sortedVerses.length > 1 && lastVerse - firstVerse === sortedVerses.length - 1;
 
     let verseRange = '';
     if (sortedVerses.length === 1) {
         verseRange = `${firstVerse}`;
-    } else if (areContiguous) {
+    } else if (isContiguous) {
         verseRange = `${firstVerse}-${lastVerse}`;
     } else {
         verseRange = sortedVerses.join(', ');
@@ -212,8 +213,9 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   };
 
 
-  const handleSingleVerseAction = (verseData: VerseData, action: (verse: SelectedVerse) => void) => {
-    if(verseData.type !== 'verse') return;
+  const handleSingleVerseAction = (verseNumber: number, action: (verse: SelectedVerse) => void) => {
+    const verseData = content.find(v => v.type === 'verse' && v.number === verseNumber);
+    if (!verseData) return;
     action({ book: book.name, chapter, verse: verseData.number, text: verseData.text, version });
   }
 
@@ -239,10 +241,13 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
     isScrollingRef.current = false;
     longPressTimeoutRef.current = setTimeout(() => {
         if (!isScrollingRef.current) {
-            // Ensure the verse being long-pressed is part of the selection
-            if (!selectedVerseNumbers.has(verseNumber)) {
-                setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
-            }
+            setSelectedVerseNumbers(prev => {
+                const newSet = new Set(prev);
+                if (!newSet.has(verseNumber)) {
+                    newSet.add(verseNumber);
+                }
+                return newSet;
+            });
             setOpenMenuVerse(verseNumber);
         }
         longPressTimeoutRef.current = null;
@@ -275,23 +280,18 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
   };
 
   const handleMenuOpen = (verseNumber: number, open: boolean) => {
-    if (open) {
-      // Ensure verse is selected when menu is opened (e.g., via right-click)
-      if (!selectedVerseNumbers.has(verseNumber)) {
-          setSelectedVerseNumbers(prev => new Set(prev).add(verseNumber));
-      }
-      setOpenMenuVerse(verseNumber);
-    } else {
+    if (!open) {
       setOpenMenuVerse(null);
     }
   };
   
   const renderVerse = (verseData: VerseData, index: number) => {
-    const key = `${verseData.type}-${verseData.number}-${index}`;
-    if (verseData.type === 'title') {
+    if (verseData.type !== 'verse') {
+      const key = `${verseData.type}-${index}`;
       return <h3 key={key} className="text-xl font-bold font-headline mt-6 mb-2 text-primary">{verseData.text}</h3>;
     }
     
+    const key = `${verseData.type}-${verseData.number}-${index}`;
     const highlight = highlightedVersesMap[`${chapter}-${verseData.number}`];
     const highlightClass = highlight ? HIGHLIGHT_COLORS.find(c => c.color === highlight.color)?.className : '';
     const isSelected = selectedVerseNumbers.has(verseData.number);
@@ -307,10 +307,15 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
               onTouchStart={() => onVerseTouchStart(verseData.number)}
               onTouchMove={onVerseTouchMove}
               onTouchEnd={() => onVerseTouchEnd(verseData.number)}
-              onClick={() => onVerseTouchEnd(verseData.number)} // Emulate tap for desktop
-              onContextMenu={(e) => {
+              onClick={(e) => { // Desktop click
+                 if (!('ontouchstart' in window)) {
+                    onVerseTouchEnd(verseData.number);
+                 }
+              }}
+              onContextMenu={(e) => { // Desktop right-click
                 e.preventDefault();
-                handleMenuOpen(verseData.number, true);
+                setSelectedVerseNumbers(prev => new Set(prev).add(verseData.number));
+                setOpenMenuVerse(verseData.number);
               }}
             >
               <strong className="font-bold pr-2 text-primary">{verseData.number}</strong>
@@ -321,10 +326,10 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
                 <DropdownMenuItem onClick={copyToClipboard} disabled={selectedVerseNumbers.size === 0}>
                     <Copy className="mr-2 h-4 w-4" /> Copiar {selectedVerseNumbers.size > 1 ? `(${selectedVerseNumbers.size})` : ''}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onCompareVerse)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookOpen className="mr-2 h-4 w-4" /> Comparar Versiones
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData, onConcordance)} disabled={selectedVerseNumbers.size !== 1}>
+                <DropdownMenuItem onClick={() => handleSingleVerseAction(verseData.number, onConcordance)} disabled={selectedVerseNumbers.size !== 1}>
                     <BookCopy className="mr-2 h-4 w-4" /> Ver Concordancia
                 </DropdownMenuItem>
                 <DropdownMenuSub>
@@ -369,7 +374,7 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
              className="font-headline text-3xl md:text-4xl flex items-center gap-2"
           >
             <span>{book.name}</span>
-            <Button variant="ghost" onClick={onChapterSelect} className="font-headline font-bold text-3xl md:text-4xl p-1 h-auto flex items-center gap-1">
+            <Button variant="ghost" className="font-headline font-bold text-3xl md:text-4xl p-1 h-auto flex items-center gap-1">
                 <span>{chapter}</span>
             </Button>
           </CardTitle>
@@ -400,3 +405,5 @@ export const ChapterViewer = React.forwardRef<HTMLDivElement, ChapterViewerProps
 });
 
 ChapterViewer.displayName = 'ChapterViewer';
+
+    
