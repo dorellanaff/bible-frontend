@@ -48,21 +48,36 @@ export function BookSelector({ oldTestamentBooks, newTestamentBooks, selectedBoo
   const [touchStart, setTouchStart] = React.useState<{ x: number, y: number } | null>(null);
   const [touchEnd, setTouchEnd] = React.useState<{ x: number, y: number } | null>(null);
   const minSwipeDistance = 50;
+  
+  React.useEffect(() => {
+    if (selectedBook) {
+      const isNT = newTestamentBooks.some(b => b.name === selectedBook.name);
+      if (isNT) {
+        setActiveTab('nuevo');
+      } else {
+        setActiveTab('antiguo');
+      }
+    }
+  }, [selectedBook, newTestamentBooks]);
 
   React.useEffect(() => {
     if (selectedBook) {
       const isAT = oldTestamentBooks.some(b => b.name === selectedBook.name);
       const isNT = newTestamentBooks.some(b => b.name === selectedBook.name);
 
-      if (isAT && activeTab === 'antiguo') {
-          const bookIndex = oldTestamentBooks.findIndex(b => b.name === selectedBook.name);
-          const bookElement = atBookRefs.current[bookIndex];
-          bookElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      } else if (isNT && activeTab === 'nuevo') {
-          const bookIndex = newTestamentBooks.findIndex(b => b.name === selectedBook.name);
-          const bookElement = ntBookRefs.current[bookIndex];
-          bookElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const scrollToBook = () => {
+        if (isAT && activeTab === 'antiguo') {
+            const bookIndex = oldTestamentBooks.findIndex(b => b.name === selectedBook.name);
+            const bookElement = atBookRefs.current[bookIndex];
+            bookElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (isNT && activeTab === 'nuevo') {
+            const bookIndex = newTestamentBooks.findIndex(b => b.name === selectedBook.name);
+            const bookElement = ntBookRefs.current[bookIndex];
+            bookElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
+      // Delay scrolling to allow tab content to render
+      setTimeout(scrollToBook, 100);
     }
   }, [selectedBook, activeTab, oldTestamentBooks, newTestamentBooks]);
 
