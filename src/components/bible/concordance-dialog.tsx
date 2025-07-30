@@ -45,7 +45,6 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
 
   const getBookByName = (name: string): Book | undefined => {
     const normalizedName = name.toUpperCase().replace(/\s+/g, '');
-    // Some references might have "1ra" "2da", etc. We need to handle this.
     const cleanName = normalizedName.replace(/^(1RA|2DA|3RA)/, (match) => {
         return match.slice(0, -2);
     });
@@ -86,40 +85,39 @@ export function ConcordanceDialog({ isOpen, onOpenChange, verseInfo }: Concordan
         setConcordanceItems(references.map(ref => ({ target: ref.target, text: null, loading: true })));
 
         references.forEach(async (ref, index) => {
-            const [rawBookName, chapterAndVerse] = ref.target.split(/ (.+)/);
-            
-            const refBook = getBookByName(rawBookName);
-            
-            if (!refBook || !chapterAndVerse) {
+            try {
+                const [rawBookName, chapterAndVerse] = ref.target.split(/ (.+)/);
+                
+                const refBook = getBookByName(rawBookName);
+                
+                if (!refBook || !chapterAndVerse) {
+                    throw new Error("Referencia no válida.");
+                }
+                
+                const [refChapterStr, refVerseStr] = chapterAndVerse.split(':');
+                const refChapter = parseInt(refChapterStr, 10);
+                const refVerse = parseInt(refVerseStr, 10);
+                
+                if (isNaN(refChapter) || isNaN(refVerse)) {
+                    throw new Error("Referencia mal formateada.");
+                }
+
+                const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
+                const verseData = chapterData?.find(v => v.type === 'verse' && v.number === refVerse);
+
                 setConcordanceItems(prev => {
                     const newItems = [...prev];
-                    newItems[index] = { ...newItems[index], text: "Referencia no válida.", loading: false };
+                    newItems[index] = { ...newItems[index], text: verseData?.text || null, loading: false };
                     return newItems;
                 });
-                return;
-            }
-            
-            const [refChapterStr, refVerseStr] = chapterAndVerse.split(':');
-            const refChapter = parseInt(refChapterStr, 10);
-            const refVerse = parseInt(refVerseStr, 10);
-            
-            if (isNaN(refChapter) || isNaN(refVerse)) {
+            } catch (error) {
                  setConcordanceItems(prev => {
                     const newItems = [...prev];
-                    newItems[index] = { ...newItems[index], text: "Referencia mal formateada.", loading: false };
+                    const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+                    newItems[index] = { ...newItems[index], text: errorMessage, loading: false };
                     return newItems;
                 });
-                return;
             }
-
-            const chapterData = await fetchChapterData(currentVersion, refBook, refChapter);
-            const verseData = chapterData?.find(v => v.type === 'verse' && v.number === refVerse);
-
-            setConcordanceItems(prev => {
-                const newItems = [...prev];
-                newItems[index] = { ...newItems[index], text: verseData?.text || null, loading: false };
-                return newItems;
-            });
         });
     }
   }, [isOpen, references, currentVersion, books]);
