@@ -18,6 +18,7 @@ import { ChapterSelectorDrawer } from '@/components/bible/chapter-selector-drawe
 import { LoadingAnimation } from '@/components/bible/loading-animation';
 import { HighlightedVersesDialog } from '@/components/bible/highlighted-verses-dialog';
 import { InfoDialog } from '@/components/bible/info-dialog';
+import { API_BASE_URL } from '@/lib/api';
 
 type SelectedVerse = { book: string; chapter: number; verse: number; text: string; version: string; references?: { source: string; target: string }[] };
 
