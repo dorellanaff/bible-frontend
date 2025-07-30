@@ -145,52 +145,52 @@ export default function Home() {
     };
   }, [chapterContent]);
 
-  const fetchChapterContent = useCallback(async () => {
-    if (!book || !chapter || !version) return;
-    
-    setIsLoading(true);
-    setChapterContent([]); // Clear previous content
-
-    try {
-      const dbContent = await getChapterFromDb(version, book, chapter);
-      if (dbContent) {
-        setChapterContent(dbContent);
-        return;
-      }
-
-      const bookName = book.name.toLowerCase().replace(/ /g, '');
-      const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
-      const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
-      
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      
-      const data = await response.json();
-      const content = data.chapter?.[0]?.data || [];
-      setChapterContent(content);
-
-      const versionIsMarkedForDownload = await isVersionDownloaded(version);
-      if (versionIsMarkedForDownload) {
-        await saveChapterToDb(version, book, chapter, content);
-      }
-
-    } catch (error) {
-        console.error("Failed to fetch chapter content:", error);
-        toast({
-          variant: "destructive",
-          title: "Error de Conexión",
-          description: "No se pudo cargar el capítulo. Por favor, revisa tu conexión a internet o inténtalo de nuevo más tarde.",
-        });
-        setChapterContent([]);
-    } finally {
-        setIsLoading(false);
-    }
-  }, [book, chapter, version, toast]);
-  
   useEffect(() => {
-      fetchChapterContent();
-  }, [fetchChapterContent]);
+    const fetchChapterContent = async () => {
+      if (!book || !chapter || !version) return;
+      
+      setIsLoading(true);
+      setChapterContent([]); // Clear previous content
+
+      try {
+        const dbContent = await getChapterFromDb(version, book, chapter);
+        if (dbContent) {
+          setChapterContent(dbContent);
+          return;
+        }
+
+        const bookName = book.name.toLowerCase().replace(/ /g, '');
+        const apiVersion = version === 'RVR1960' ? 'RV1960' : version;
+        const response = await fetch(`${API_BASE_URL}/api/bible/${bookName}/${chapter}?version=${apiVersion}`);
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        const content = data.chapter?.[0]?.data || [];
+        setChapterContent(content);
+
+        const versionIsMarkedForDownload = await isVersionDownloaded(version);
+        if (versionIsMarkedForDownload) {
+          await saveChapterToDb(version, book, chapter, content);
+        }
+
+      } catch (error) {
+          console.error("Failed to fetch chapter content:", error);
+          toast({
+            variant: "destructive",
+            title: "Error de Conexión",
+            description: "No se pudo cargar el capítulo. Por favor, revisa tu conexión a internet o inténtalo de nuevo más tarde.",
+          });
+          setChapterContent([]);
+      } finally {
+          setIsLoading(false);
+      }
+    };
+    
+    fetchChapterContent();
+  }, [book, chapter, version, toast]);
 
 
   const handleTextSizeChange = (newSize: number) => {
