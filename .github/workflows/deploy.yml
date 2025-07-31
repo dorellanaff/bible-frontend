@@ -1,29 +1,32 @@
-name: Deploy to EC2
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Set up SSH key
-      run: |
-        echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > private_key.pem
-        chmod 600 private_key.pem
-
     - name: Deploy to EC2
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
           set -e
+
+          # Instalar Node.js 20.19.1 si no está
+          NODE_VERSION="v20.19.1"
+          ARCH="linux-x64"
+          NODE_DISTRO="node-\$NODE_VERSION-\$ARCH"
+
+          if ! command -v node >/dev/null 2>&1 || [[ \$(node -v) != \$NODE_VERSION ]]; then
+            echo "Instalando Node.js \$NODE_VERSION..."
+            cd /tmp
+            curl -O https://nodejs.org/dist/\$NODE_VERSION/\$NODE_DISTRO.tar.xz
+            tar -xf \$NODE_DISTRO.tar.xz
+            sudo mv \$NODE_DISTRO /usr/local/node
+            sudo ln -sf /usr/local/node/bin/node /usr/bin/node
+            sudo ln -sf /usr/local/node/bin/npm /usr/bin/npm
+            sudo ln -sf /usr/local/node/bin/npx /usr/bin/npx
+          fi
+
+          # Instalar PM2 si no está
+          if ! command -v pm2 >/dev/null 2>&1; then
+            echo "Instalando PM2..."
+            sudo npm install -g pm2
+          fi
+
+          # Clonar o actualizar el repo
           cd /home/admin
-          
           if [ ! -d "bible-frontend" ]; then
             git clone https://github.com/${{ github.repository }}.git bible-frontend
           fi
@@ -32,12 +35,10 @@ jobs:
           git reset --hard
           git pull origin main
 
-          # Instalar dependencias
+          # Instalar dependencias y build
           npm install
-
-          # Construir proyecto
           npm run build
 
-          # Usar PM2 para correrlo (asegúrate que tenga script start)
+          # Correr con PM2
           pm2 start npm --name "bible-frontend" -- start || pm2 restart "bible-frontend"
         EOF
