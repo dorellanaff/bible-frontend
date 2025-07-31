@@ -52,10 +52,16 @@ export function AppHeader({
           <div className="flex-1 min-w-0 text-center">
              {showReadingNav ? (
                 <div className="flex items-center justify-center gap-2">
-                  <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1 whitespace-nowrap">
-                      <span className="truncate">{book ? toTitleCase(book.name) : ''}</span>
-                      <ChevronsUpDown className="h-4 w-4 opacity-50 flex-shrink-0" />
-                  </Button>
+                   {isMobile ? (
+                      <Button variant="ghost" onClick={onBookSelect} className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1 whitespace-nowrap">
+                          <span className="truncate">{book ? toTitleCase(book.name) : ''}</span>
+                          <ChevronsUpDown className="h-4 w-4 opacity-50 flex-shrink-0" />
+                      </Button>
+                    ) : (
+                      <div className="font-headline font-bold text-lg p-1 h-auto truncate flex items-center gap-1 whitespace-nowrap">
+                        <span className="truncate">{book ? toTitleCase(book.name) : ''}</span>
+                      </div>
+                    )}
                   <Button variant="ghost" onClick={onChapterSelect} className="font-headline font-bold text-lg p-1 h-auto flex items-center gap-1">
                       <span>{chapter}</span>
                       <ChevronsUpDown className="h-4 w-4 opacity-50 flex-shrink-0" />
