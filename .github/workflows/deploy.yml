@@ -3,14 +3,14 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - main  # o la rama que uses
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout repository
       uses: actions/checkout@v3
 
     - name: Set up SSH key
@@ -18,12 +18,26 @@ jobs:
         echo "${{ secrets.EC2_SSH_KEY }}" | base64 -d > private_key.pem
         chmod 600 private_key.pem
 
-    - name: Deploy via SSH
+    - name: Deploy to EC2
       run: |
         ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          cd ${{ secrets.DEPLOY_PATH }}  # cambia si es otra ruta
+          set -e
+          cd /home/admin
+          
+          if [ ! -d "bible-frontend" ]; then
+            git clone https://github.com/${{ github.repository }}.git bible-frontend
+          fi
+
+          cd bible-frontend
+          git reset --hard
           git pull origin main
+
+          # Instalar dependencias
           npm install
+
+          # Construir proyecto
           npm run build
-          pm2 restart all  # o tu sistema de proceso
+
+          # Usar PM2 para correrlo (asegúrate que tenga script start)
+          pm2 start npm --name "bible-frontend" -- start || pm2 restart "bible-frontend"
         EOF
