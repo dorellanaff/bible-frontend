@@ -34,7 +34,7 @@ jobs:
           git reset --hard
           git pull origin main
 
-          sudo chown -R $(whoami):$(whoami) /home/admin/bible-frontend
+          sudo chown -R admin:admin /home/admin/bible-frontend
           rm -rf node_modules package-lock.json
 
           npm install
