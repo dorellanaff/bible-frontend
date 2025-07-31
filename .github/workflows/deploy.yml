@@ -23,25 +23,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i private_key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << EOF
           set -e
 
-          NODE_VERSION="v20.19.1"
-          ARCH="linux-x64"
-          NODE_DISTRO="node-\$NODE_VERSION-\$ARCH"
-
-          if ! command -v node >/dev/null 2>&1 || [ "\$(node -v)" != "\$NODE_VERSION" ]; then
-            echo "Instalando Node.js \$NODE_VERSION..."
-            cd /tmp
-            curl -O https://nodejs.org/dist/\$NODE_VERSION/\$NODE_DISTRO.tar.xz
-            tar -xf \$NODE_DISTRO.tar.xz
-            sudo mv \$NODE_DISTRO /usr/local/node
-            sudo ln -sf /usr/local/node/bin/node /usr/bin/node
-            sudo ln -sf /usr/local/node/bin/npm /usr/bin/npm
-            sudo ln -sf /usr/local/node/bin/npx /usr/bin/npx
-          fi
-
-          if ! command -v pm2 >/dev/null 2>&1; then
-            echo "Instalando PM2..."
-            sudo npm install -g pm2
-          fi
+          export PATH=\$PATH:/usr/local/node/bin
 
           cd /home/admin
           if [ ! -d "bible-frontend" ]; then
@@ -52,8 +34,11 @@ jobs:
           git reset --hard
           git pull origin main
 
+          sudo chown -R $(whoami):$(whoami) /home/admin/bible-frontend
+          rm -rf node_modules package-lock.json
+
           npm install
           npm run build
 
-          /usr/local/node/bin/pm2 start npm --name "bible-frontend" -- start || pm2 restart "bible-frontend"
+          /usr/local/node/bin/pm2 start npm --name "bible-frontend" -- start || /usr/local/node/bin/pm2 restart "bible-frontend"
         EOF
