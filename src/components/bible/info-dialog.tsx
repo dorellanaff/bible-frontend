@@ -2,7 +2,7 @@
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Globe, Code, Heart, BrainCircuit, Star, CheckCircle } from "lucide-react";
+import { Globe, Code, Heart, BrainCircuit, Star, CheckCircle, Copyright } from "lucide-react";
 
 interface InfoDialogProps {
   isOpen: boolean;
@@ -16,10 +16,10 @@ export function InfoDialog({ isOpen, onOpenChange }: InfoDialogProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl flex items-center gap-2">
-            Biblia
+            Lamp
           </DialogTitle>
           <DialogDescription>
-            Una aplicación moderna y elegante para la lectura de la Biblia.
+             Salmos 119:105
           </DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-6 text-sm">
@@ -49,9 +49,13 @@ export function InfoDialog({ isOpen, onOpenChange }: InfoDialogProps) {
                   </p>
               </div>
             </div>
+
+            <div className="flex items-center justify-center pt-4 text-xs text-muted-foreground gap-1">
+                <Copyright className="h-3 w-3" />
+                <span>Copyright 2025, Lamp</span>
+            </div>
         </div>
       </DialogContent>
     </Dialog>
   )
 }
-

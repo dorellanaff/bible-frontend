@@ -3,10 +3,10 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from '@/components/theme-provider';
 
-const APP_NAME = "Biblia";
-const APP_DEFAULT_TITLE = "Biblia";
-const APP_TITLE_TEMPLATE = "%s - Biblia";
-const APP_DESCRIPTION = "An elegant and modern Bible reader.";
+const APP_NAME = "Lamp";
+const APP_DEFAULT_TITLE = "Lamp";
+const APP_TITLE_TEMPLATE = "%s - Lamp";
+const APP_DESCRIPTION = "Salmos 119:105";
 
 export const metadata: Metadata = {
   applicationName: APP_NAME,

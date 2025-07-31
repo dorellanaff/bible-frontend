@@ -22,9 +22,14 @@ export function LoadingAnimation() {
   return (
     <div className="loading-container">
       <div className="circular-progress"></div>
-      <h2 className="text-2xl font-display text-primary mt-8">
-        Una biblia para ti{dots}
-      </h2>
+      <div className="text-center mt-8">
+        <h2 className="text-4xl font-display text-primary">
+          Lamp
+        </h2>
+        <p className="text-lg text-muted-foreground mt-2 font-headline">
+          Salmos 119:105{dots}
+        </p>
+      </div>
     </div>
   );
 }

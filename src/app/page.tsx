@@ -422,7 +422,7 @@ export default function Home() {
               ) : (
                   <Card className="card-material flex items-center justify-center h-full">
                       <CardContent className="text-center text-muted-foreground p-6">
-                          <h3 className="text-2xl font-headline">Bienvenido a Biblia</h3>
+                          <h3 className="text-2xl font-headline">Bienvenido a Lamp</h3>
                           <p className="mt-2">Por favor, selecciona un libro para comenzar a leer.</p>
                       </CardContent>
                   </Card>

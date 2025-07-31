@@ -70,7 +70,7 @@ export function AppHeader({
              ) : (
                <Link href="/" className="cursor-pointer">
                 <h1 className="text-xl sm:text-2xl font-headline font-bold text-foreground truncate">
-                  Biblia
+                  Lamp
                 </h1>
                </Link>
              )}
